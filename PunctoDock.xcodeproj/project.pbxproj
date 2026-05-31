@@ -1,0 +1,444 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		F3A0D6F2E64A3155D4028727 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56195CBC798EFB7F24D8F948 /* AppDelegate.swift */; };
+		1367B6204B23FCD5296874BD /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E211A73D987A44E349E0D23 /* AppState.swift */; };
+		744E61F26C07BC26E8154345 /* InsertionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 983A06559805E3BF3A7B6A68 /* InsertionManager.swift */; };
+		BB2452092FFF8002193B3784 /* LoginItemManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C44F1CD6A344BAB58631D76B /* LoginItemManager.swift */; };
+		7EDA1914A25AA9EC3CB1A01C /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EEDFA9589FFBA03E7ABF407 /* AppSettings.swift */; };
+		4AC84D1334430F0245CFB6D1 /* ClipboardHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = E571F074BA9B1C11BEF366F0 /* ClipboardHistory.swift */; };
+		42526DF20BBF3FCC479CEB86 /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E36FEBD135DC806C4B2431D /* ClipboardMonitor.swift */; };
+		6681D18B6E33A4E8E525C5B8 /* KeyCombo.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFE8C655E633F7B57FCBE759 /* KeyCombo.swift */; };
+		6EDF423642FA40BD84DE4D4F /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A4C3A319E95DA116B623193 /* PersistenceManager.swift */; };
+		136DD1F5906E94CF4C606D6D /* SymbolCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 093472F1A8FD36D043B5E055 /* SymbolCatalog.swift */; };
+		0C79605BB495DB44034E4C7F /* UsageHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000B45B5D81B805F850428F7 /* UsageHistory.swift */; };
+		0C20F4DDEA51B84BA6F77008 /* FloatingPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD502F8911A218A72CF97F39 /* FloatingPanel.swift */; };
+		8A22C191A61EA7B428919F5C /* PanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D69120C2445CBB2BEE14E31 /* PanelController.swift */; };
+		DE1B127ED1A45C3CE3FA7378 /* PanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBFC876D3F508123AE1D2C05 /* PanelView.swift */; };
+		AA3073CF56AC783E5476E921 /* PanelViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9FA87638564A3C24ED3855 /* PanelViewModel.swift */; };
+		F832A5029EBA1FC719965A6C /* PermissionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B5D921DC03572A3C1ECFDA7 /* PermissionManager.swift */; };
+		80328B36C29F03167A175487 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09C7BFB24C5AD7A60231958 /* SettingsView.swift */; };
+		6E58718E53E330C20A4A899F /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89805BF94EC06EDE5154CF92 /* SettingsWindowController.swift */; };
+		2E15C2183BB1FE16551853A3 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2E246BE474C8523FF031FC /* HotkeyManager.swift */; };
+		CC3C170B51AA504E1A76B50E /* MouseTriggerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A5F85758390EA3378983E8 /* MouseTriggerMonitor.swift */; };
+		BC4101E366BEECBDBC319013 /* TriggerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8637DC4270EA9F982C49AA /* TriggerManager.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		56195CBC798EFB7F24D8F948 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate.swift"; sourceTree = "<group>"; };
+		3E211A73D987A44E349E0D23 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppState.swift"; sourceTree = "<group>"; };
+		983A06559805E3BF3A7B6A68 /* InsertionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InsertionManager.swift"; sourceTree = "<group>"; };
+		C44F1CD6A344BAB58631D76B /* LoginItemManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LoginItemManager.swift"; sourceTree = "<group>"; };
+		8EEDFA9589FFBA03E7ABF407 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppSettings.swift"; sourceTree = "<group>"; };
+		E571F074BA9B1C11BEF366F0 /* ClipboardHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClipboardHistory.swift"; sourceTree = "<group>"; };
+		2E36FEBD135DC806C4B2431D /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClipboardMonitor.swift"; sourceTree = "<group>"; };
+		BFE8C655E633F7B57FCBE759 /* KeyCombo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KeyCombo.swift"; sourceTree = "<group>"; };
+		1A4C3A319E95DA116B623193 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PersistenceManager.swift"; sourceTree = "<group>"; };
+		093472F1A8FD36D043B5E055 /* SymbolCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SymbolCatalog.swift"; sourceTree = "<group>"; };
+		000B45B5D81B805F850428F7 /* UsageHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UsageHistory.swift"; sourceTree = "<group>"; };
+		CD502F8911A218A72CF97F39 /* FloatingPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FloatingPanel.swift"; sourceTree = "<group>"; };
+		8D69120C2445CBB2BEE14E31 /* PanelController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PanelController.swift"; sourceTree = "<group>"; };
+		FBFC876D3F508123AE1D2C05 /* PanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PanelView.swift"; sourceTree = "<group>"; };
+		DA9FA87638564A3C24ED3855 /* PanelViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PanelViewModel.swift"; sourceTree = "<group>"; };
+		0B5D921DC03572A3C1ECFDA7 /* PermissionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PermissionManager.swift"; sourceTree = "<group>"; };
+		E09C7BFB24C5AD7A60231958 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
+		89805BF94EC06EDE5154CF92 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsWindowController.swift"; sourceTree = "<group>"; };
+		DC2E246BE474C8523FF031FC /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HotkeyManager.swift"; sourceTree = "<group>"; };
+		E2A5F85758390EA3378983E8 /* MouseTriggerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MouseTriggerMonitor.swift"; sourceTree = "<group>"; };
+		EF8637DC4270EA9F982C49AA /* TriggerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TriggerManager.swift"; sourceTree = "<group>"; };
+		AE33B349B8596DAB5D2A4CDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		82F38EA31B7E6DD30A72440A /* PunctoDock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PunctoDock.entitlements; sourceTree = "<group>"; };
+		254B653C9F1506ED269ACD26 /* PunctoDock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PunctoDock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1BAF943B8B4CFB040795325A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		90B9C057C14993016BDDE174 = {
+			isa = PBXGroup;
+			children = (
+				54A4C7715579CD5122DB2FEA /* PunctoDock */,
+				6AEC47645927D0215B3F2D69 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		6AEC47645927D0215B3F2D69 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				254B653C9F1506ED269ACD26 /* PunctoDock.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		54A4C7715579CD5122DB2FEA /* PunctoDock */ = {
+			isa = PBXGroup;
+			children = (
+				FA67C0C5BE2E332F9841DAFE /* App */,
+				6D1FA880BC7D7017D7E661F5 /* Insertion */,
+				8A5B50BCE361C9B1566FA4DA /* LoginItem */,
+				8B3136D1F4AE2437B1B054DA /* Model */,
+				E7716EF0D7EA6DB4D1D0B5ED /* Panel */,
+				7C0BF15728AD02A8C9701360 /* Permissions */,
+				9CCD6658CEE2ADC3E6F76A89 /* Settings */,
+				9E85DA14029C48224C8A2BEC /* Triggers */,
+				D25205FF2CFFF38B889015C6 /* Resources */,
+			);
+			path = PunctoDock;
+			sourceTree = "<group>";
+		};
+		FA67C0C5BE2E332F9841DAFE /* App */ = {
+			isa = PBXGroup;
+			children = (
+				56195CBC798EFB7F24D8F948 /* AppDelegate.swift */,
+				3E211A73D987A44E349E0D23 /* AppState.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		6D1FA880BC7D7017D7E661F5 /* Insertion */ = {
+			isa = PBXGroup;
+			children = (
+				983A06559805E3BF3A7B6A68 /* InsertionManager.swift */,
+			);
+			path = Insertion;
+			sourceTree = "<group>";
+		};
+		8A5B50BCE361C9B1566FA4DA /* LoginItem */ = {
+			isa = PBXGroup;
+			children = (
+				C44F1CD6A344BAB58631D76B /* LoginItemManager.swift */,
+			);
+			path = LoginItem;
+			sourceTree = "<group>";
+		};
+		8B3136D1F4AE2437B1B054DA /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8EEDFA9589FFBA03E7ABF407 /* AppSettings.swift */,
+				E571F074BA9B1C11BEF366F0 /* ClipboardHistory.swift */,
+				2E36FEBD135DC806C4B2431D /* ClipboardMonitor.swift */,
+				BFE8C655E633F7B57FCBE759 /* KeyCombo.swift */,
+				1A4C3A319E95DA116B623193 /* PersistenceManager.swift */,
+				093472F1A8FD36D043B5E055 /* SymbolCatalog.swift */,
+				000B45B5D81B805F850428F7 /* UsageHistory.swift */,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+		E7716EF0D7EA6DB4D1D0B5ED /* Panel */ = {
+			isa = PBXGroup;
+			children = (
+				CD502F8911A218A72CF97F39 /* FloatingPanel.swift */,
+				8D69120C2445CBB2BEE14E31 /* PanelController.swift */,
+				FBFC876D3F508123AE1D2C05 /* PanelView.swift */,
+				DA9FA87638564A3C24ED3855 /* PanelViewModel.swift */,
+			);
+			path = Panel;
+			sourceTree = "<group>";
+		};
+		7C0BF15728AD02A8C9701360 /* Permissions */ = {
+			isa = PBXGroup;
+			children = (
+				0B5D921DC03572A3C1ECFDA7 /* PermissionManager.swift */,
+			);
+			path = Permissions;
+			sourceTree = "<group>";
+		};
+		9CCD6658CEE2ADC3E6F76A89 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				E09C7BFB24C5AD7A60231958 /* SettingsView.swift */,
+				89805BF94EC06EDE5154CF92 /* SettingsWindowController.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		9E85DA14029C48224C8A2BEC /* Triggers */ = {
+			isa = PBXGroup;
+			children = (
+				DC2E246BE474C8523FF031FC /* HotkeyManager.swift */,
+				E2A5F85758390EA3378983E8 /* MouseTriggerMonitor.swift */,
+				EF8637DC4270EA9F982C49AA /* TriggerManager.swift */,
+			);
+			path = Triggers;
+			sourceTree = "<group>";
+		};
+		D25205FF2CFFF38B889015C6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AE33B349B8596DAB5D2A4CDB /* Info.plist */,
+				82F38EA31B7E6DD30A72440A /* PunctoDock.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E5AD05968E15DF485B216960 /* PunctoDock */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 312262D80325CADA70A3272B /* Build configuration list for PBXNativeTarget "PunctoDock" */;
+			buildPhases = (
+				FC20B53D093D3BAD6A23BB92 /* Sources */,
+				1BAF943B8B4CFB040795325A /* Frameworks */,
+				33B6A209DFF73A9D58779E25 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PunctoDock;
+			productName = PunctoDock;
+			productReference = 254B653C9F1506ED269ACD26 /* PunctoDock.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E6921F438ED91165739C4837 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				ORGANIZATIONNAME = "PunctoDock";
+				TargetAttributes = {
+					E5AD05968E15DF485B216960 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 46E5A916260DF83493DCF3A2 /* Build configuration list for PBXProject "PunctoDock" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = de;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				de,
+				en,
+				Base,
+			);
+			mainGroup = 90B9C057C14993016BDDE174;
+			productRefGroup = 6AEC47645927D0215B3F2D69 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E5AD05968E15DF485B216960 /* PunctoDock */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		33B6A209DFF73A9D58779E25 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FC20B53D093D3BAD6A23BB92 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F3A0D6F2E64A3155D4028727 /* AppDelegate.swift in Sources */,
+				1367B6204B23FCD5296874BD /* AppState.swift in Sources */,
+				744E61F26C07BC26E8154345 /* InsertionManager.swift in Sources */,
+				BB2452092FFF8002193B3784 /* LoginItemManager.swift in Sources */,
+				7EDA1914A25AA9EC3CB1A01C /* AppSettings.swift in Sources */,
+				4AC84D1334430F0245CFB6D1 /* ClipboardHistory.swift in Sources */,
+				42526DF20BBF3FCC479CEB86 /* ClipboardMonitor.swift in Sources */,
+				6681D18B6E33A4E8E525C5B8 /* KeyCombo.swift in Sources */,
+				6EDF423642FA40BD84DE4D4F /* PersistenceManager.swift in Sources */,
+				136DD1F5906E94CF4C606D6D /* SymbolCatalog.swift in Sources */,
+				0C79605BB495DB44034E4C7F /* UsageHistory.swift in Sources */,
+				0C20F4DDEA51B84BA6F77008 /* FloatingPanel.swift in Sources */,
+				8A22C191A61EA7B428919F5C /* PanelController.swift in Sources */,
+				DE1B127ED1A45C3CE3FA7378 /* PanelView.swift in Sources */,
+				AA3073CF56AC783E5476E921 /* PanelViewModel.swift in Sources */,
+				F832A5029EBA1FC719965A6C /* PermissionManager.swift in Sources */,
+				80328B36C29F03167A175487 /* SettingsView.swift in Sources */,
+				6E58718E53E330C20A4A899F /* SettingsWindowController.swift in Sources */,
+				2E15C2183BB1FE16551853A3 /* HotkeyManager.swift in Sources */,
+				CC3C170B51AA504E1A76B50E /* MouseTriggerMonitor.swift in Sources */,
+				BC4101E366BEECBDBC319013 /* TriggerManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+
+		6633376F1F6DA20124E626C6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_DECL = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		F9C36E451A825CA6EE55C3BE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		8EA26798567EB28298810AC4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_CATEGORY = public.app-category.productivity;
+				ASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				INFOPLIST_FILE = PunctoDock/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.punctodock.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		84950883D2FB6D0CE45FEA23 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APP_CATEGORY = public.app-category.productivity;
+				ASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				INFOPLIST_FILE = PunctoDock/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.punctodock.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+
+		46E5A916260DF83493DCF3A2 /* Build configuration list for PBXProject "PunctoDock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6633376F1F6DA20124E626C6 /* Debug */,
+				F9C36E451A825CA6EE55C3BE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		312262D80325CADA70A3272B /* Build configuration list for PBXNativeTarget "PunctoDock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8EA26798567EB28298810AC4 /* Debug */,
+				84950883D2FB6D0CE45FEA23 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = E6921F438ED91165739C4837 /* Project object */;
+}
