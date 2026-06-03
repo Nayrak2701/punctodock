@@ -10,10 +10,17 @@ Press **F7** (or your custom shortcut) from any app → a small floating panel a
 
 ## What it does
 
-- **Symbol panel** — punctuation, special characters, brackets, arrows, and more, all in one compact grid
-- **Clipboard history** — recent copies shown in the panel, one click to paste any of them
-- **Direct insertion** — the chosen character is inserted into whatever app is in front, without leaving your keyboard flow
-- **Frequency sorting** — the characters you use most often move to the front automatically
+The panel has three tabs:
+
+| Tab | Contents |
+|---|---|
+| **Clipboard** | Your recent clipboard history — click any entry to paste it |
+| **Symbole** | Punctuation, special characters, brackets, arrows, and more |
+| **Emoji** | Searchable emoji catalog |
+
+- **Direct insertion** — selected item goes into whatever app is in front, no manual ⌘V needed
+- **Frequency sorting** — the symbols you use most often move to the front automatically
+- **Pair insertion** — brackets and quotes insert as pairs with the cursor positioned in between
 - **Runs silently** — no Dock icon, no menu bar clutter; press the trigger, use the panel, done
 - **100% local** — no cloud, no telemetry, no account
 
@@ -38,7 +45,12 @@ Press **F7** (or your custom shortcut) from any app → a small floating panel a
 3. Move `PunctoDock.app` to your **Applications** folder
 4. Double-click to launch
 
-> **macOS Gatekeeper note:** Because PunctoDock is not distributed through the Mac App Store, macOS may show a warning the first time. To open it: right-click the app → **Open** → **Open** in the dialog.
+> **macOS Gatekeeper note:** Because PunctoDock is not distributed through the Mac App Store, macOS may show a warning the first time you try to open it.
+>
+> **How to open it anyway:**
+> 1. Do **not** double-click (that shows the warning but offers no way to proceed)
+> 2. Instead: **right-click** the app → **Open** → click **Open** in the dialog that appears
+> 3. You only have to do this once
 
 ### Option B — Build from source
 
@@ -84,7 +96,7 @@ That's it. The permission is permanent; you won't be asked again unless you rein
 | Press **Escape** | Panel closes without inserting |
 | Arrow keys + Enter | Navigate and confirm selection by keyboard |
 | Click the **…** button | Expand to the full character catalog |
-| Click the app icon | Open Settings |
+| Click the app icon (in Applications) | Open Settings |
 
 ### Customising the trigger
 
