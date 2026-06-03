@@ -1,10 +1,17 @@
+<p align="center">
+  <img src="docs/app-icon.png" width="120" alt="PunctoDock icon">
+</p>
+
 # PunctoDock
 
 **A tiny macOS utility that puts punctuation, symbols, and clipboard history one keystroke away.**
 
 Press **F7** (or your custom shortcut) from any app → a small floating panel appears near your cursor → click a character → it lands exactly where your text cursor is, no copy-paste needed.
 
-> App UI language: German. macOS 13 Ventura or later required.
+<!-- Screenshot: replace this comment with an image tag once you have a panel screenshot -->
+<!-- Example: <p align="center"><img src="docs/screenshot-panel.png" width="600" alt="PunctoDock panel"></p> -->
+
+> App UI language: German. **Requires macOS 26 or later** (uses Liquid Glass UI).
 
 ---
 
@@ -30,7 +37,7 @@ The panel has three tabs:
 
 | | |
 |---|---|
-| **macOS** | 13 Ventura or later |
+| **macOS** | 26 or later |
 | **Architecture** | Apple Silicon and Intel |
 | **Permissions** | Accessibility (Bedienungshilfen) — to insert into other apps |
 
@@ -57,7 +64,7 @@ The panel has three tabs:
 Requirements: Xcode 15 or later, macOS 13+ SDK.
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/punctodock.git
+git clone https://github.com/<your-username>/punctodock.git
 cd punctodock
 python3 generate_xcodeproj.py   # regenerates PunctoDock.xcodeproj
 ```
