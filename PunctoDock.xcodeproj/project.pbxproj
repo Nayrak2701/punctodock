@@ -28,6 +28,7 @@
 		2E15C2183BB1FE16551853A3 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC2E246BE474C8523FF031FC /* HotkeyManager.swift */; };
 		CC3C170B51AA504E1A76B50E /* MouseTriggerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2A5F85758390EA3378983E8 /* MouseTriggerMonitor.swift */; };
 		BC4101E366BEECBDBC319013 /* TriggerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF8637DC4270EA9F982C49AA /* TriggerManager.swift */; };
+		9F605251075D3E9439893215 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 843400EF88A57F22B906D3A2 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +55,7 @@
 		EF8637DC4270EA9F982C49AA /* TriggerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TriggerManager.swift"; sourceTree = "<group>"; };
 		AE33B349B8596DAB5D2A4CDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		82F38EA31B7E6DD30A72440A /* PunctoDock.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PunctoDock.entitlements; sourceTree = "<group>"; };
+		843400EF88A57F22B906D3A2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		254B653C9F1506ED269ACD26 /* PunctoDock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PunctoDock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -180,6 +182,7 @@
 		D25205FF2CFFF38B889015C6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				843400EF88A57F22B906D3A2 /* Assets.xcassets */,
 				AE33B349B8596DAB5D2A4CDB /* Info.plist */,
 				82F38EA31B7E6DD30A72440A /* PunctoDock.entitlements */,
 			);
@@ -246,6 +249,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F605251075D3E9439893215 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,10 +379,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APP_CATEGORY = public.app-category.productivity;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "PunctoDock Self-Signed";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				INFOPLIST_FILE = PunctoDock/Resources/Info.plist;
@@ -397,10 +403,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APP_CATEGORY = public.app-category.productivity;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				CODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "PunctoDock Self-Signed";
+				CODE_SIGN_STYLE = Manual;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_APP_SANDBOX = NO;
 				INFOPLIST_FILE = PunctoDock/Resources/Info.plist;

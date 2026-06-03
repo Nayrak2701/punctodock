@@ -37,6 +37,7 @@ SOURCES = [
 ]
 INFO_PLIST_PATH = "PunctoDock/Resources/Info.plist"
 ENTITLEMENTS_PATH = "PunctoDock/Resources/PunctoDock.entitlements"
+ASSETS_PATH = "PunctoDock/Resources/Assets.xcassets"
 
 # ─── UUIDs ────────────────────────────────────────────────────────────────────
 PROJECT_UID    = uid("project_root")
@@ -55,6 +56,8 @@ PROJ_CONFIGLIST = uid("configlist_project")
 TARGET_CONFIGLIST = uid("configlist_target")
 INFO_FILE_UID  = uid("fileref_infoplist")
 ENTITLEMENTS_UID = uid("fileref_entitlements")
+ASSETS_UID     = uid("fileref_assets_xcassets")
+ASSETS_BUILD_UID = uid("buildfile_assets_xcassets")
 
 # Group UUIDs
 GROUP_APP        = uid("group_app")
@@ -87,6 +90,10 @@ def pbx_file_references():
     lines.append(f'\t\t{ENTITLEMENTS_UID} /* PunctoDock.entitlements */ = '
                  f'{{isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; '
                  f'path = PunctoDock.entitlements; sourceTree = "<group>"; }};')
+    # Assets catalog
+    lines.append(f'\t\t{ASSETS_UID} /* Assets.xcassets */ = '
+                 f'{{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; '
+                 f'path = Assets.xcassets; sourceTree = "<group>"; }};')
     # Product
     lines.append(f'\t\t{PRODUCT_REF} /* PunctoDock.app */ = '
                  f'{{isa = PBXFileReference; explicitFileType = wrapper.application; '
@@ -99,6 +106,9 @@ def pbx_build_files():
         name = os.path.basename(s)
         lines.append(f'\t\t{build_uid(s)} /* {name} in Sources */ = '
                      f'{{isa = PBXBuildFile; fileRef = {file_uid(s)} /* {name} */; }};')
+    # Asset catalog as a resource
+    lines.append(f'\t\t{ASSETS_BUILD_UID} /* Assets.xcassets in Resources */ = '
+                 f'{{isa = PBXBuildFile; fileRef = {ASSETS_UID} /* Assets.xcassets */; }};')
     return "\n".join(lines)
 
 def by_group(prefix):
@@ -128,7 +138,8 @@ def pbx_groups():
     src_settings = by_group("PunctoDock/Settings/")
     src_triggers = by_group("PunctoDock/Triggers/")
 
-    res_children = (f"\t\t\t\t{INFO_FILE_UID} /* Info.plist */,\n"
+    res_children = (f"\t\t\t\t{ASSETS_UID} /* Assets.xcassets */,\n"
+                    f"\t\t\t\t{INFO_FILE_UID} /* Info.plist */,\n"
                     f"\t\t\t\t{ENTITLEMENTS_UID} /* PunctoDock.entitlements */,")
 
     subgroups = (f"\t\t\t\t{GROUP_APP} /* App */,\n"
@@ -199,7 +210,9 @@ def resources_build_phase():
     return (f'\t\t{RESOURCES_PHASE} /* Resources */ = {{\n'
             f'\t\t\tisa = PBXResourcesBuildPhase;\n'
             f'\t\t\tbuildActionMask = 2147483647;\n'
-            f'\t\t\tfiles = (\n\t\t\t);\n'
+            f'\t\t\tfiles = (\n'
+            f'\t\t\t\t{ASSETS_BUILD_UID} /* Assets.xcassets in Resources */,\n'
+            f'\t\t\t);\n'
             f'\t\t\trunOnlyForDeploymentPostprocessing = 0;\n'
             f'\t\t}};')
 
@@ -292,23 +305,26 @@ COMMON_RELEASE_PROJECT_SETTINGS = """\
 \t\t\t\tSWIFT_OPTIMIZATION_LEVEL = "-O";"""
 
 TARGET_SETTINGS = """\
-\t\t\t\tAPP_CATEGORY = public.app-category.productivity;
-\t\t\t\tASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
-\t\t\t\tCOMBINE_HIDPI_IMAGES = YES;
-\t\t\t\tCODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
-\t\t\t\tCODE_SIGN_STYLE = Automatic;
-\t\t\t\tDEVELOPMENT_TEAM = "";
-\t\t\t\tENABLE_APP_SANDBOX = NO;
-\t\t\t\tINFOPLIST_FILE = PunctoDock/Resources/Info.plist;
-\t\t\t\tLD_RUNPATH_SEARCH_PATHS = (
-\t\t\t\t\t"$(inherited)",
-\t\t\t\t\t"@executable_path/../Frameworks",
-\t\t\t\t);
-\t\t\t\tMACOSX_DEPLOYMENT_TARGET = 26.0;
-\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = "com.punctodock.app";
-\t\t\t\tPRODUCT_NAME = "$(TARGET_NAME)";
-\t\t\t\tSWIFT_VERSION = 5.0;"""
+				APP_CATEGORY = public.app-category.productivity;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSTCAT_COMPILER_SKIP_APP_STORE_DEPLOYMENT = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				CODE_SIGN_ENTITLEMENTS = PunctoDock/Resources/PunctoDock.entitlements;
+				CODE_SIGN_IDENTITY = "PunctoDock Self-Signed";
+				CODE_SIGN_STYLE = Manual;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_APP_SANDBOX = NO;
+				INFOPLIST_FILE = PunctoDock/Resources/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.punctodock.app";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;"""
 
+TARGET_SETTINGS_DEBUG = TARGET_SETTINGS  # same — no team configured
 def build_configurations():
     return f"""
 \t\t{DEBUG_BUILD} /* Debug */ = {{
@@ -328,7 +344,7 @@ def build_configurations():
 \t\t{DEBUG_TARGET} /* Debug */ = {{
 \t\t\tisa = XCBuildConfiguration;
 \t\t\tbuildSettings = {{
-{TARGET_SETTINGS}
+{TARGET_SETTINGS_DEBUG}
 \t\t\t}};
 \t\t\tname = Debug;
 \t\t}};

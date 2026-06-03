@@ -42,10 +42,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         appState.onSettingsChanged = { [weak self] settings in self?.triggerManager.apply(settings) }
         triggerManager.apply(appState.settings)
 
+        // Always start the AX check so the grant persists across Xcode rebuilds.
+        // Shows the system prompt once if not yet trusted, then polls until granted.
+        PermissionManager.shared.startAccessibilityCheck()
+
         if !appState.settings.hasCompletedOnboarding {
-            // First run: explain via the settings window and ask for Accessibility.
+            // First run: explain via the settings window.
             appState.settings.hasCompletedOnboarding = true
-            PermissionManager.shared.requestAccessibility()
             settingsWindow.show()
         } else if !LoginItemManager.isEnabled {
             // Manual launches show settings. When "start at login" is on we stay quiet

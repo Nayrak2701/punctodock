@@ -2,13 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <!--
-      Puncto-dock is intentionally NOT sandboxed: it posts system-wide key events
-      (⌘V) and reads/writes ~/Library/Application Support/com.punctodock.app/ at the
-      real (non-container) path required by the spec. The App Sandbox would block the
-      synthetic paste and redirect the data path into a container.
-    -->
-    <key>com.apple.security.app-sandbox</key>
-    <false/>
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
 </dict>
 </plist>

@@ -21,6 +21,24 @@ final class PermissionManager {
         return AXIsProcessTrustedWithOptions([key: true] as CFDictionary)
     }
 
+    /// Shows the system Accessibility prompt (if not yet trusted) and then polls every
+    /// 2 s until trust is granted. When granted, posts `AccessibilityGranted` on the
+    /// default NotificationCenter so subscribers can react without polling themselves.
+    func startAccessibilityCheck() {
+        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
+        if AXIsProcessTrustedWithOptions([promptKey: true] as CFDictionary) { return }
+        Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { timer in
+            if AXIsProcessTrusted() {
+                timer.invalidate()
+                DispatchQueue.main.async {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("AccessibilityGranted"), object: nil
+                    )
+                }
+            }
+        }
+    }
+
     /// Opens System Settings directly at Privacy → Accessibility.
     func openAccessibilitySettings() {
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!

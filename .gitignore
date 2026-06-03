@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Xcode — machine-specific user data, never shared
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+*.moved-aside
+*.xcscmblueprint
+
+# Build artifacts
+build/
+DerivedData/
+*.ipa
+*.xcarchive
+*.dSYM.zip
+*.dSYM
+
+# Xcode SPM cache (if added later)
+.swiftpm/
+
+# Python cache (generate_xcodeproj.py)
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Internal developer session notes (contain local paths, not for public repo)
+PROJEKT_DOKUMENTATION.md
