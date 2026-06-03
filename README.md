@@ -8,8 +8,9 @@
 
 Press **F7** (or your custom shortcut) from any app → a small floating panel appears near your cursor → click a character → it lands exactly where your text cursor is, no copy-paste needed.
 
-<!-- Screenshot: replace this comment with an image tag once you have a panel screenshot -->
-<!-- Example: <p align="center"><img src="docs/screenshot-panel.png" width="600" alt="PunctoDock panel"></p> -->
+<p align="center">
+  <img src="docs/screenshot-panel.png" width="420" alt="PunctoDock panel — Clipboard tab">
+</p>
 
 > App UI language: German. **Requires macOS 26 or later** (uses Liquid Glass UI).
 
