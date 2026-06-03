@@ -64,7 +64,7 @@ The panel has three tabs:
 Requirements: Xcode 15 or later, macOS 13+ SDK.
 
 ```bash
-git clone https://github.com/<your-username>/punctodock.git
+git clone https://github.com/Nayrak2701/punctodock.git
 cd punctodock
 python3 generate_xcodeproj.py   # regenerates PunctoDock.xcodeproj
 ```
