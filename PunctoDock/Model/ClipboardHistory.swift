@@ -110,8 +110,10 @@ struct ClipboardEntry: Identifiable, Codable, Equatable {
 struct ClipboardHistory: Codable {
     var entries: [ClipboardEntry] = []
 
-    static let maxEntries = 50
-    static let maxBytes   = 10 * 1024 * 1024  // 10 MB per entry
+    static let maxEntries      = 50
+    static let maxImageEntries = 15   // images are decoded in-memory when the panel is open;
+                                       // cap them separately to keep NSImage memory manageable
+    static let maxBytes        = 10 * 1024 * 1024  // 10 MB per entry
 
     // MARK: Mutations
 
@@ -160,18 +162,38 @@ struct ClipboardHistory: Codable {
     // MARK: Internal trim
 
     private mutating func trim() {
-        guard entries.count > Self.maxEntries else { return }
-        var i = entries.count - 1
-        var excess = entries.count - Self.maxEntries
         var pathsToDelete: [String] = []
-        while excess > 0 && i >= 0 {
-            if !entries[i].isPinned {
-                if let p = entries[i].imagePath { pathsToDelete.append(p) }
-                entries.remove(at: i)
-                excess -= 1
+
+        // 1. Total-entry cap.
+        if entries.count > Self.maxEntries {
+            var i = entries.count - 1
+            var excess = entries.count - Self.maxEntries
+            while excess > 0 && i >= 0 {
+                if !entries[i].isPinned {
+                    if let p = entries[i].imagePath { pathsToDelete.append(p) }
+                    entries.remove(at: i)
+                    excess -= 1
+                }
+                i -= 1
             }
-            i -= 1
         }
+
+        // 2. Per-type image cap — prevents NSImage memory from growing unbounded when
+        //    many screenshots / photos are copied during a long session.
+        let imageCount = entries.filter { $0.contentType == .image && !$0.isPinned }.count
+        if imageCount > Self.maxImageEntries {
+            var excess = imageCount - Self.maxImageEntries
+            var i = entries.count - 1
+            while excess > 0 && i >= 0 {
+                if entries[i].contentType == .image && !entries[i].isPinned {
+                    if let p = entries[i].imagePath { pathsToDelete.append(p) }
+                    entries.remove(at: i)
+                    excess -= 1
+                }
+                i -= 1
+            }
+        }
+
         if !pathsToDelete.isEmpty {
             DispatchQueue.global(qos: .utility).async { pathsToDelete.forEach { ImageStore.remove($0) } }
         }

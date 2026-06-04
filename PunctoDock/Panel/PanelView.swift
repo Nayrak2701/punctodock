@@ -94,6 +94,10 @@ struct PanelView: View {
                 ScrollView {
                     LazyVStack(spacing: 5) {
                         ForEach(vm.clipboardEntries) { entry in
+                            // .equatable() lets SwiftUI skip the render when the row
+                            // has not visually changed. This prevents a full 50-row
+                            // re-render (with expensive per-row accessibility lookups)
+                            // every time a single new entry is added.
                             ClipboardRow(
                                 entry: entry,
                                 onInsert:         { vm.insertClipboardEntry(entry) },
@@ -103,6 +107,7 @@ struct PanelView: View {
                                 onClearAll:       { vm.clearClipboard(keepPinned: false) },
                                 onReveal:         { vm.revealInFinder(entry) }
                             )
+                            .equatable()
                         }
                     }
                     // Suppress Liquid Glass motion-vector recalculations when the list mutates.
@@ -178,7 +183,14 @@ struct PanelView: View {
 /// One clipboard entry as a slim, lightly tinted glass card. Tap inserts; the
 /// hamburger button and a right-click context menu expose pin/delete. Hover and
 /// press are reflected only through subtle material brightness (handled in the style).
-private struct ClipboardRow: View {
+///
+/// Conforms to `Equatable` so that `.equatable()` can tell SwiftUI "this row has not
+/// changed" when unrelated entries are added/removed. Without this, a single new entry
+/// causes all 50 rows to re-render and compute expensive SF-Symbol accessibility labels
+/// for every menu item — which blocked the main thread for ~1.5 s in profiling.
+/// We compare only the fields that actually affect the visual: `id`, `isPinned`, and
+/// `contentType`. Closures are intentionally excluded (they don't affect rendering).
+private struct ClipboardRow: View, Equatable {
     let entry: ClipboardEntry
     let onInsert: () -> Void
     let onTogglePin: () -> Void
@@ -186,6 +198,12 @@ private struct ClipboardRow: View {
     let onClearKeepPins: () -> Void
     let onClearAll: () -> Void
     let onReveal: () -> Void
+
+    static func == (lhs: ClipboardRow, rhs: ClipboardRow) -> Bool {
+        lhs.entry.id          == rhs.entry.id       &&
+        lhs.entry.isPinned    == rhs.entry.isPinned  &&
+        lhs.entry.contentType == rhs.entry.contentType
+    }
 
     var body: some View {
         ZStack(alignment: .topTrailing) {

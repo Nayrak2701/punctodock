@@ -85,14 +85,26 @@ final class ClipboardMonitor {
 
     /// If the pasteboard holds a single image file reference, returns its bytes and the
     /// pasteboard type matching the file's format.
+    ///
+    /// File-size is checked BEFORE loading to avoid reading multi-hundred-MB files
+    /// (e.g. RAW photos or screenshots) into memory on the main thread. Files larger
+    /// than ClipboardHistory.maxBytes are silently skipped — they would be rejected
+    /// downstream anyway.
     private func imageFromFileURL(on pb: NSPasteboard) -> (Data, NSPasteboard.PasteboardType)? {
         guard let urls = pb.readObjects(forClasses: [NSURL.self],
                                         options: [.urlReadingFileURLsOnly: true]) as? [URL],
               let url = urls.first,
               let utType = UTType(filenameExtension: url.pathExtension),
-              utType.conforms(to: .image),
-              let data = try? Data(contentsOf: url)
+              utType.conforms(to: .image)
         else { return nil }
+
+        // Bail out early for oversized files — avoids reading e.g. a 200 MB RAW photo
+        // synchronously on the main thread just to discard it a moment later.
+        if let attrs = try? url.resourceValues(forKeys: [.fileSizeKey]),
+           let fileSize = attrs.fileSize,
+           fileSize > ClipboardHistory.maxBytes { return nil }
+
+        guard let data = try? Data(contentsOf: url) else { return nil }
         return (data, NSPasteboard.PasteboardType(utType.identifier))
     }
 }
