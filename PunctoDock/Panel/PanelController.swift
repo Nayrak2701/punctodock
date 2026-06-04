@@ -262,5 +262,12 @@ final class PanelController {
 private final class PanelWindowDelegate: NSObject, NSWindowDelegate {
     private let onResignKey: () -> Void
     init(onResignKey: @escaping () -> Void) { self.onResignKey = onResignKey }
-    func windowDidResignKey(_ notification: Notification) { onResignKey() }
+
+    func windowDidResignKey(_ notification: Notification) {
+        // When the user drags an image from the panel to another app the panel
+        // transiently loses key status. NSEvent.pressedMouseButtons bit-0 is the
+        // left button; if it is still held the user is mid-drag — don't close.
+        guard NSEvent.pressedMouseButtons & 1 == 0 else { return }
+        onResignKey()
+    }
 }

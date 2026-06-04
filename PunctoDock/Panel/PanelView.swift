@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 /// The floating panel content. Transparent Liquid-Glass look that follows the system
 /// Light/Dark Mode, compact insets, a segmented glass tab capsule and slim clipboard
@@ -317,9 +318,15 @@ private struct CardButtonBody: View {
 
 /// Loads the image for a clipboard entry asynchronously so the main thread never
 /// blocks on a disk read. Shows a neutral placeholder while loading.
+///
+/// Supports drag-and-drop: the user can drag a copied image directly onto a browser
+/// upload field, Finder folder, or any image-accepting drop target. A subtle icon
+/// appears on hover to hint at this capability. The image is exported to a temp file
+/// with the correct extension (`.png`, `.jpg`, etc.) so all targets can read it.
 private struct ClipboardImageView: View {
     let entry: ClipboardEntry
     @State private var image: NSImage?
+    @State private var hovering = false
 
     var body: some View {
         Group {
@@ -328,6 +335,21 @@ private struct ClipboardImageView: View {
                     .resizable()
                     .scaledToFit()
                     .accessibilityLabel("Image")
+                    // Subtle drag-hint overlay — only shown on hover, no opacity animation
+                    // to keep rendering cheap (no extra SwiftUI passes).
+                    .overlay(alignment: .bottomTrailing) {
+                        if hovering {
+                            Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(3)
+                                .background(.ultraThinMaterial,
+                                            in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                .padding(5)
+                                .allowsHitTesting(false)   // don't block the drag gesture
+                                .accessibilityHidden(true)
+                        }
+                    }
             } else {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(Color.primary.opacity(0.06))
@@ -337,6 +359,10 @@ private struct ClipboardImageView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: 70, alignment: .leading)
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .onHover { hovering = $0 }
+        // Drag-to-upload: drag this image to a browser upload field, Finder, or any
+        // image-accepting app. The temp file is kept until the next app launch.
+        .onDrag { Self.dragProvider(for: entry) }
         .task(id: entry.id) {
             // Disk read on a background thread; only Data (Sendable) crosses the boundary.
             let data = await Task.detached(priority: .utility) {
@@ -346,6 +372,58 @@ private struct ClipboardImageView: View {
             image = NSImage(data: data)
         }
     }
+
+    // MARK: Drag provider
+
+    /// Builds an NSItemProvider that delivers a real file on disk with the correct
+    /// image extension. Browsers, Finder, and image editors all understand this format.
+    ///
+    /// The file is written once (stable per entry.id) to a session-scoped drag-cache
+    /// directory. PunctoDock sweeps this directory on the next launch so it never
+    /// accumulates over multiple sessions.
+    private static func dragProvider(for entry: ClipboardEntry) -> NSItemProvider {
+        let typeStr = entry.imagePasteboardType ?? UTType.png.identifier
+        let utType  = UTType(typeStr) ?? .png
+        let ext     = utType.preferredFilenameExtension ?? "png"
+
+        // Stable per-entry URL — hovering several times doesn't re-copy the file.
+        let dragDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PunctoDock-drag", isDirectory: true)
+        let tempURL = dragDir
+            .appendingPathComponent(entry.id.uuidString)
+            .appendingPathExtension(ext)
+
+        let fm = FileManager.default
+        if !fm.fileExists(atPath: tempURL.path) {
+            guard let src = entry.imageFileURL, fm.fileExists(atPath: src.path) else {
+                return NSItemProvider()
+            }
+            do {
+                try fm.createDirectory(at: dragDir, withIntermediateDirectories: true)
+                try fm.copyItem(at: src, to: tempURL)
+            } catch {
+                return NSItemProvider()
+            }
+        }
+
+        let provider = NSItemProvider()
+        provider.suggestedName = "image.\(ext)"
+
+        // Register as a file representation so the receiver gets a proper file URL.
+        // `openInPlace: true` means the receiver can read the file without copying it —
+        // memory-efficient, and safe because the file persists until the next launch.
+        provider.registerFileRepresentation(
+            forTypeIdentifier: utType.identifier,
+            fileOptions: [.openInPlace],
+            visibility: .all
+        ) { completion in
+            completion(tempURL, true, nil)
+            return nil  // no progress object needed for a synchronous hand-off
+        }
+
+        return provider
+    }
+
 }
 
 // MARK: - SymbolTile

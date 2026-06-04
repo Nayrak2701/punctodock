@@ -32,6 +32,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Background utility: no Dock icon.
         NSApp.setActivationPolicy(.accessory)
 
+        // Sweep drag-cache temp files left over from the previous session.
+        // Small image copies written to /tmp/PunctoDock-drag/ during panel drags;
+        // safe to delete on next launch because they are only needed mid-drag.
+        DispatchQueue.global(qos: .background).async {
+            let dragDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("PunctoDock-drag")
+            try? FileManager.default.removeItem(at: dragDir)
+        }
+
         appState = AppState()
         triggerManager = TriggerManager()
         panelController = PanelController(appState: appState)
