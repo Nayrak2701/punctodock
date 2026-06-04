@@ -2,6 +2,27 @@
 
 All notable changes to PunctoDock are documented here.
 
+## [1.1.0] — 2026-06-04
+
+**Requires macOS 26 or later.**
+
+### Added
+- **Menu bar icon** with a toggle in Settings (*Show menu bar icon*). Click opens the
+  panel; right-click shows a Settings / Quit menu.
+- **Reveal in Finder** for image clipboard entries — exports a nicely-named copy and
+  reveals it.
+- **Broader image format support**: PNG, TIFF, PDF, JPEG, GIF, HEIC/HEIF, BMP and WebP,
+  plus image files copied in Finder (captured via their file URL).
+
+### Changed
+- **Default trigger is now ⌥V (Option+V)** instead of F7. Existing custom shortcuts are
+  kept.
+- **Hardened the synthetic-paste path** (single `InsertionManager.performPaste`) with a
+  longer pre-restore delay so slow Mac Catalyst / Electron apps (WhatsApp, Slack,
+  Discord) read the pasted content before the original clipboard is restored. See
+  `docs/PASTE_COMPATIBILITY.md`.
+- **App and repository fully in English** (UI strings, Info.plist region/display name).
+
 ## [1.0.0] — 2026-06-03
 
 **Requires macOS 26 or later.**
