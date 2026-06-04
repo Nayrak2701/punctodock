@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var triggerManager: TriggerManager!
     private var panelController: PanelController!
     private var settingsWindow: SettingsWindowController!
+    private var statusItem: NSStatusItem?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Single-instance guard. A second copy (e.g. an orphaned Xcode-run build still
@@ -28,8 +29,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Background utility: no Dock icon, no menu bar. The app icon still launches it.
+        // Background utility: no Dock icon. Status bar item provides quick access.
         NSApp.setActivationPolicy(.accessory)
+        setupStatusItem()
 
         appState = AppState()
         triggerManager = TriggerManager()
@@ -55,6 +57,45 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // (that launch is the login one); clicking the app icon re-opens settings.
             settingsWindow.show()
         }
+    }
+
+    // MARK: Status Bar
+
+    private func setupStatusItem() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        guard let button = statusItem?.button else { return }
+
+        // Use a simple clipboard SF Symbol as template (adapts to light/dark menu bar automatically).
+        let img = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "PunctoDock")
+        img?.isTemplate = true
+        button.image = img
+        button.toolTip = "PunctoDock — Klick: Panel öffnen  |  Rechtsklick: Menü"
+        button.action = #selector(statusItemClicked(_:))
+        button.target = self
+        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
+        guard let event = NSApp.currentEvent else { return }
+        if event.type == .rightMouseUp {
+            let menu = NSMenu()
+            menu.addItem(withTitle: "Einstellungen…",
+                         action: #selector(openSettings),
+                         keyEquivalent: ",")
+            menu.addItem(.separator())
+            menu.addItem(withTitle: "PunctoDock beenden",
+                         action: #selector(NSApplication.terminate(_:)),
+                         keyEquivalent: "q")
+            statusItem?.menu = menu
+            statusItem?.button?.performClick(nil)
+            statusItem?.menu = nil   // detach so left-click still works next time
+        } else {
+            panelController.toggle(source: .keyboard)
+        }
+    }
+
+    @objc private func openSettings() {
+        settingsWindow.show()
     }
 
     /// Clicking the app icon again while running re-opens the settings window.
