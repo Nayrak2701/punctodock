@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/app-icon.png" width="120" alt="PunctoDock icon">
+  <img src="docs/marketing/hero.png" width="820" alt="PunctoDock — punctuation, symbols & clipboard, one keystroke away">
 </p>
 
 # PunctoDock
@@ -10,6 +10,10 @@ Press **⌥V** (Option+V — or your custom shortcut) from any app → a small f
 
 <p align="center">
   <img src="docs/screenshot-panel.png" width="420" alt="PunctoDock panel — Clipboard tab">
+</p>
+
+<p align="center">
+  <img src="docs/marketing/features.png" width="820" alt="Why PunctoDock — insert anywhere, clipboard history, 100% local">
 </p>
 
 > **Requires macOS 26 or later** (uses the Liquid Glass UI).
