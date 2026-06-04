@@ -195,9 +195,18 @@ private struct ClipboardRow: View {
                 .buttonStyle(CardButtonStyle())
                 .contextMenu { menuItems }
 
-            menuButton
-                .padding(.top, 5)
-                .padding(.trailing, 5)
+            HStack(spacing: 2) {
+                // Subtle pin indicator — only visible when the entry is pinned.
+                if entry.isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.system(size: 8, weight: .medium))
+                        .foregroundStyle(.secondary.opacity(0.55))
+                        .accessibilityHidden(true)
+                }
+                menuButton
+            }
+            .padding(.top, 5)
+            .padding(.trailing, 5)
         }
     }
 
