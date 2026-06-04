@@ -375,12 +375,18 @@ private struct ClipboardImageView: View {
 
     // MARK: Drag provider
 
-    /// Builds an NSItemProvider that delivers a real file on disk with the correct
-    /// image extension. Browsers, Finder, and image editors all understand this format.
+    /// Builds an NSItemProvider that delivers a real file on disk so drop targets
+    /// (Finder, WhatsApp, browsers, image editors) all receive a proper file reference.
     ///
-    /// The file is written once (stable per entry.id) to a session-scoped drag-cache
-    /// directory. PunctoDock sweeps this directory on the next launch so it never
-    /// accumulates over multiple sessions.
+    /// Root cause of the previous version: registering under the IMAGE type identifier
+    /// (e.g. "public.png") does NOT put "public.file-url" on the drag pasteboard —
+    /// Finder and Electron/Catalyst apps look for "public.file-url" and reject the drop
+    /// when it isn't there.
+    ///
+    /// Fix: NSItemProvider(object: NSURL) uses NSURL's NSItemProviderWriting conformance,
+    /// which correctly advertises "public.file-url" on the drag pasteboard. We also
+    /// register a lazy image-data representation so apps that prefer raw bytes (Sketch,
+    /// Preview, Affinity …) can accept the drop without reading the file themselves.
     private static func dragProvider(for entry: ClipboardEntry) -> NSItemProvider {
         let typeStr = entry.imagePasteboardType ?? UTType.png.identifier
         let utType  = UTType(typeStr) ?? .png
@@ -406,19 +412,26 @@ private struct ClipboardImageView: View {
             }
         }
 
-        let provider = NSItemProvider()
+        // NSItemProvider(object: NSURL) is the correct way to drag a file on macOS.
+        // NSURL's NSItemProviderWriting puts "public.file-url" on the pasteboard, which
+        // Finder, Electron (WhatsApp, Slack …), and browser upload fields all require.
+        let provider = NSItemProvider(object: tempURL as NSURL)
         provider.suggestedName = "image.\(ext)"
 
-        // Register as a file representation so the receiver gets a proper file URL.
-        // `openInPlace: true` means the receiver can read the file without copying it —
-        // memory-efficient, and safe because the file persists until the next launch.
-        provider.registerFileRepresentation(
+        // Lazy image-data fallback for apps that ask for the raw pixel type directly
+        // (e.g. "public.png") instead of going via the file URL. Loaded from disk only
+        // when the drop target actually requests it — no RAM cost until then.
+        provider.registerDataRepresentation(
             forTypeIdentifier: utType.identifier,
-            fileOptions: [.openInPlace],
             visibility: .all
         ) { completion in
-            completion(tempURL, true, nil)
-            return nil  // no progress object needed for a synchronous hand-off
+            if let data = try? Data(contentsOf: tempURL) {
+                completion(data, nil)
+            } else {
+                completion(nil, NSError(domain: "com.punctodock.drag", code: 1,
+                                        userInfo: [NSLocalizedDescriptionKey: "Image not found"]))
+            }
+            return nil
         }
 
         return provider
