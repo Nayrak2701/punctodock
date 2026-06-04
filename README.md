@@ -1,175 +1,151 @@
 <p align="center">
-  <img src="docs/marketing/hero.png" width="820" alt="PunctoDock — punctuation, symbols & clipboard, one keystroke away">
+  <img src="docs/marketing/hero.png" width="820" alt="PunctoDock — symbols, emoji, and the things you copied, right where you type">
 </p>
 
 # PunctoDock
 
-**A tiny macOS utility that puts punctuation, symbols, and clipboard history one keystroke away.**
+**The easy way to type symbols, emoji, and the things you copied — right where you're typing.**
 
-Press **⌥V** (Option+V — or your custom shortcut) from any app → a small floating panel appears near your cursor → click a character → it lands exactly where your text cursor is, no copy-paste needed.
+Press your shortcut from any app. A small window pops up next to your mouse. Click a symbol, sign, emoji, or an old copy — and it drops straight into your text. No copy and paste.
 
 <p align="center">
-  <img src="docs/screenshot-panel.png" width="420" alt="PunctoDock panel — Clipboard tab">
+  <img src="docs/screenshot-panel.png" width="420" alt="The PunctoDock window, showing the copy history">
 </p>
 
 <p align="center">
-  <img src="docs/marketing/features.png" width="820" alt="Why PunctoDock — insert anywhere, clipboard history, 100% local">
+  <img src="docs/marketing/features.png" width="820" alt="Type it anywhere · All your copies · Yours and private">
 </p>
 
-> **Requires macOS 26 or later** (uses the Liquid Glass UI).
+> Works on **macOS 26 or later**.
 
 ---
 
 ## What it does
 
-The panel has three tabs:
+The window has three tabs:
 
-| Tab | Contents |
+| Tab | What's inside |
 |---|---|
-| **Clipboard** | Your recent clipboard history — click any entry to paste it |
-| **Symbols** | Punctuation, special characters, brackets, arrows, and more |
-| **Emoji** | The system emoji catalog |
+| **Clipboard** | The things you copied recently — click one to paste it |
+| **Symbols** | Punctuation, brackets, arrows, currency, and other signs |
+| **Emoji** | The emoji picker |
 
-- **Direct insertion** — the selected item goes into whatever app is in front, no manual ⌘V needed
-- **Frequency sorting** — the symbols you use most move to the front automatically
-- **Pair insertion** — brackets and quotes insert as pairs with the cursor positioned between them
-- **Clipboard history** — text and images; pin the entries you want to keep
-- **Reveal images in Finder** — any image entry can be exported and shown in Finder
-- **Broad image support** — PNG, TIFF, PDF, JPEG, GIF, HEIC/HEIF, BMP, WebP, plus image files copied in Finder
-- **Menu bar icon** — optional; click to open the panel, right-click for a quick menu
-- **100% local** — no cloud, no telemetry, no account
+- **Goes where you type** — what you pick lands in the app you're using. No copy and paste.
+- **Learns your favourites** — the symbols you use most move to the front.
+- **Brackets and quotes in pairs** — they open and close, with your cursor in the middle.
+- **Remembers your copies** — recent text and pictures; pin the ones you want to keep.
+- **Show a picture in Finder** — right-click any image in the list.
+- **Works with all common pictures** — PNG, JPEG, GIF, HEIC, PDF and more, plus image files you copy in Finder.
+- **A menu bar icon** (optional) — click to open, right-click for a quick menu.
+- **Private** — everything stays on your Mac. No internet, no account.
 
 ---
 
-## Requirements
+## What you need
 
 | | |
 |---|---|
-| **macOS** | 26 or later |
-| **Architecture** | Apple Silicon and Intel |
-| **Permissions** | Accessibility — to insert into other apps |
+| **Mac** | macOS 26 or later |
+| **Chip** | Apple Silicon or Intel |
+| **One permission** | Accessibility — so PunctoDock can type into other apps |
 
 ---
 
-## Installation
+## How to install
 
-### Option A — Download (recommended for most users)
+### Easiest way — download
 
-1. Go to [Releases](../../releases) and download the latest `PunctoDock.zip`
-2. Unzip it — you get `PunctoDock.app`
-3. Move `PunctoDock.app` to your **Applications** folder
-4. Double-click to launch
+1. Open [Releases](../../releases) and download the latest `PunctoDock.zip`.
+2. Unzip it. You get `PunctoDock.app`.
+3. Drag `PunctoDock.app` into your **Applications** folder.
+4. **Right-click it → Open**, then click **Open** again. (You only do this the first time. macOS shows a warning for apps that aren't from its store — this is normal.)
 
-> **macOS Gatekeeper note:** Because PunctoDock is not distributed through the Mac App Store, macOS may show a warning the first time you open it.
->
-> **How to open it anyway:**
-> 1. Do **not** double-click (that shows the warning but offers no way to proceed)
-> 2. Instead: **right-click** the app → **Open** → click **Open** in the dialog that appears
-> 3. You only have to do this once
+### For developers — build it yourself
 
-### Option B — Build from source
-
-Requirements: Xcode 26 or later (the project targets macOS 26).
+You need Xcode 26 or later (the app targets macOS 26).
 
 ```bash
 git clone https://github.com/Nayrak2701/punctodock.git
 cd punctodock
-./setup_signing.sh             # one-time: stable self-signed identity (keeps Accessibility across rebuilds)
+./setup_signing.sh             # one-time: stable signing so the permission sticks across builds
 python3 generate_xcodeproj.py  # regenerates PunctoDock.xcodeproj
 ```
 
-Then open `PunctoDock.xcodeproj` in Xcode and press **⌘R**.
-
-The `xcodeproj` is already included in the repo — `generate_xcodeproj.py` is only needed if you want to regenerate it from scratch.
+Open `PunctoDock.xcodeproj` in Xcode and press **⌘R**.
 
 ---
 
-## First launch: Accessibility permission
+## First time: give it permission
 
-PunctoDock inserts characters by simulating a paste keystroke (⌘V) into the active app. macOS requires an explicit **Accessibility** permission for this.
+PunctoDock types for you by sending a paste (⌘V) into the app you're using. macOS asks for your okay first. **You'll be asked once, right after you open it.**
 
-**You will be asked once, right after the first launch.**
+1. In the PunctoDock window, click **"Open the setting…"**.
+2. System Settings opens at **Privacy & Security → Accessibility**.
+3. Find **PunctoDock** in the list and switch it **on**.
+4. Go back to PunctoDock — you'll see a green checkmark.
 
-To approve it:
+That's it. You won't be asked again (unless you move or reinstall the app).
 
-1. Click **"Open Accessibility settings…"** in PunctoDock's Settings window
-2. System Settings opens at **Privacy & Security → Accessibility**
-3. Find **PunctoDock** in the list and turn the toggle **on**
-4. Come back to PunctoDock — the status shows a green checkmark
-
-That's it. The permission is permanent; you won't be asked again unless you reinstall or move the app.
-
-> **Without this permission**, PunctoDock still works — the chosen character is placed on your clipboard (you paste manually with ⌘V). The status indicator in Settings shows red when the permission is missing.
+> **No permission yet?** PunctoDock still helps — it copies your symbol so you can paste it yourself with **⌘V**.
 
 ---
 
-## How to use
+## How to use it
 
-| Action | What happens |
+| You do this | This happens |
 |---|---|
-| Press **⌥V** | Floating panel opens near your cursor |
-| Click a character | Inserted into the active app, panel closes |
-| Press **Escape** | Panel closes without inserting |
-| Arrow keys + Enter | Navigate and confirm a selection by keyboard (Symbols tab) |
-| Right-click a clipboard entry | Pin, delete, clear, or (for images) reveal in Finder |
-| Click the menu bar icon | Opens the panel; right-click for Settings / Quit |
-| Click the app icon (in Applications) | Opens Settings |
+| Press your shortcut (starts as **⌥V**) | The window opens next to your mouse |
+| Click a symbol | It goes into your app, the window closes |
+| Press **Escape** | The window closes, nothing added |
+| Arrow keys + Enter | Move and choose with the keyboard (Symbols tab) |
+| Right-click a copied item | Pin, delete, clear, or (for pictures) show in Finder |
+| Click the menu bar icon | Opens the window; right-click for settings or quit |
 
-### Customising the trigger
+**Want a different shortcut?** Open Settings and pick your own. You can also turn on a mouse-wheel double-click to open it.
 
-Open Settings → **Trigger** section:
-- Record any key combination as your custom shortcut
-- Or enable **middle-click double-press** as a secondary trigger
-
-See [docs/PASTE_COMPATIBILITY.md](docs/PASTE_COMPATIBILITY.md) for how insertion works and a per-app test matrix.
+See [docs/PASTE_COMPATIBILITY.md](docs/PASTE_COMPATIBILITY.md) for how pasting works and a per-app check.
 
 ---
 
-## Settings overview
+## Settings
 
 | Setting | What it does |
 |---|---|
-| Keyboard trigger | Enable/disable the keyboard shortcut |
-| Shortcut | Record a custom hotkey (default: ⌥V) |
-| Middle-click double-press | Use a middle-click double-press as trigger |
-| Start at login | Auto-launch at login (background, silent) |
-| Most-used characters first | Sort the compact grid by usage frequency |
-| Reset usage history | Clear the frequency counter |
-| Keep pinned entries when clearing | Preserve pins when clearing clipboard history |
-| Clear history | Clear clipboard history |
-| Show menu bar icon | Show/hide the menu bar item |
-| Permission | Accessibility status + link to System Settings |
+| Open with a keyboard shortcut | Turn the shortcut on or off |
+| Your shortcut | Pick your own keys (starts as ⌥V) |
+| Open by double-clicking the mouse wheel | A second way to open it |
+| Open automatically when I turn on my Mac | Starts quietly in the background |
+| Show the symbols I use most at the top | Sorts by how often you use them |
+| Forget which symbols I use most | Resets that |
+| Keep pinned items when I clear the list | Keeps your pins when clearing |
+| Clear the copy history | Empties the list |
+| Show the icon in the top menu bar | Show or hide the menu bar icon |
+| Permission to type for you | Shows the permission status |
 
 ---
 
-## Privacy
+## Your privacy
 
-PunctoDock collects **only what it needs to work**, and only on your Mac.
+PunctoDock keeps **only what it needs to work**, and only on your Mac.
 
-- **Stored locally:** your settings, clipboard history (text & images), and — *only while
-  "Most-used characters first" is enabled* — a per-symbol usage counter. Turn that option
-  off and nothing about usage is recorded.
-- **Never recorded:** content a source marks sensitive (passwords from password managers
-  and other concealed/transient clipboard items are ignored), app names, or any identity
-  information.
-- **No network at all:** no cloud, no sync, no telemetry, no analytics, no account. The
-  app makes zero network connections.
-- **Where:** `~/Library/Application Support/com.punctodock.app/`
-- **To delete everything:** quit PunctoDock, then delete that folder.
+- **Kept on your Mac:** your settings, your copy history (text and pictures), and — *only if you turn on "Show the symbols I use most"* — a count of which symbols you use. Turn that off and nothing about your use is kept.
+- **Never kept:** anything an app marks as secret (passwords from password managers are ignored), app names, or anything that identifies you.
+- **No internet, ever:** no cloud, no syncing, no tracking, no account.
+- **To delete everything:** quit PunctoDock, then delete the folder `~/Library/Application Support/com.punctodock.app/`.
 
 ---
 
-## Known limitations
+## Good to know
 
-- **Accessibility must be re-granted after reinstall or moving the app** — this is a macOS security requirement, not a bug.
-- **Some password fields ignore synthetic paste** — by design on the app side; the character lands on your clipboard as a fallback.
-- **Auto-completing brackets in some apps** may produce a double bracket — PunctoDock still inserts the pair correctly.
+- After you move or reinstall the app, macOS asks for the Accessibility permission again. That's a macOS rule, not a bug.
+- Some password boxes ignore an automatic paste on purpose. PunctoDock then just copies the symbol for you.
+- A few apps add a second bracket on their own. PunctoDock still adds the right pair.
 
-See [docs/PASTE_COMPATIBILITY.md](docs/PASTE_COMPATIBILITY.md) for details and tuning.
+More detail: [docs/PASTE_COMPATIBILITY.md](docs/PASTE_COMPATIBILITY.md).
 
 ---
 
-## Build architecture notes (for contributors)
+## For contributors
 
 ```
 PunctoDock/
@@ -183,16 +159,9 @@ PunctoDock/
 └── Resources/      Info.plist, entitlements, app icon
 ```
 
-No third-party dependencies. Pure Swift + AppKit + SwiftUI + Carbon.
+No third-party dependencies. Pure Swift + AppKit + SwiftUI + Carbon. Build a release with `./build_release.sh`. See [docs/ROADMAP.md](docs/ROADMAP.md) for planned features.
 
-**Accessibility/TCC stability for developers:**
-Every new Xcode build changes the app's code hash, which causes macOS to revoke and re-ask for Accessibility. Run `setup_signing.sh` once to create a stable self-signed identity — after that, rebuilds keep the existing permission. See the script for details.
-
----
-
-## Contributing
-
-Bug reports and pull requests welcome. Please open an issue first for larger changes.
+**Permission across rebuilds:** every Xcode build changes the app's signature, which makes macOS ask for Accessibility again. Run `setup_signing.sh` once to create a stable signing identity so the permission sticks.
 
 ---
 

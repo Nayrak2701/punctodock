@@ -78,7 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let img = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "PunctoDock")
             img?.isTemplate = true
             button.image = img
-            button.toolTip = "PunctoDock — Click: open panel  |  Right-click: menu"
+            button.toolTip = "PunctoDock — click to open · right-click for menu"
             button.action = #selector(statusItemClicked(_:))
             button.target = self
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])

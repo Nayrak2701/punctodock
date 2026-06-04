@@ -135,12 +135,12 @@ struct PanelView: View {
     private var symbolsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                sectionLabel("Characters")
+                sectionLabel("Symbols")
                 symbolGrid(vm.sortedSingles, startIndex: 0)
 
                 Divider().opacity(0.35).padding(.vertical, 1)
 
-                sectionLabel("Pairs & snippets")
+                sectionLabel("Pairs")
                 symbolGrid(vm.pairs, startIndex: vm.singles.count)
             }
             .padding(.horizontal, 10)
@@ -240,13 +240,13 @@ private struct ClipboardRow: View {
     @ViewBuilder private var menuItems: some View {
         Button(entry.isPinned ? "Unpin" : "Pin", action: onTogglePin)
         if entry.contentType == .image {
-            Button("Reveal in Finder", action: onReveal)
+            Button("Show in Finder", action: onReveal)
         }
         Divider()
         Button("Delete", role: .destructive, action: onDelete)
         Divider()
-        Button("Clear all (keep pins)", action: onClearKeepPins)
-        Button("Clear all (incl. pins)", role: .destructive, action: onClearAll)
+        Button("Clear all (keep pinned)", action: onClearKeepPins)
+        Button("Clear all (with pinned)", role: .destructive, action: onClearAll)
     }
 }
 
