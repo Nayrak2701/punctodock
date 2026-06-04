@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleDevelopmentRegion</key>
-    <string>de</string>
+    <string>en</string>
     <key>CFBundleDisplayName</key>
-    <string>Puncto-dock</string>
+    <string>PunctoDock</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Puncto-dock</string>
+    <string>PunctoDock</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
@@ -29,6 +29,6 @@
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHumanReadableCopyright</key>
-    <string>Lokale Utility-App. Keine Datensammlung.</string>
+    <string>Local utility app. No data collection.</string>
 </dict>
 </plist>

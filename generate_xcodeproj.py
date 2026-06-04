@@ -438,10 +438,9 @@ pbxproj = f"""// !$*UTF8*$!
 \t\t\t}};
 \t\t\tbuildConfigurationList = {PROJ_CONFIGLIST} /* Build configuration list for PBXProject "PunctoDock" */;
 \t\t\tcompatibilityVersion = "Xcode 14.0";
-\t\t\tdevelopmentRegion = de;
+\t\t\tdevelopmentRegion = en;
 \t\t\thasScannedForEncodings = 0;
 \t\t\tknownRegions = (
-\t\t\t\tde,
 \t\t\t\ten,
 \t\t\t\tBase,
 \t\t\t);

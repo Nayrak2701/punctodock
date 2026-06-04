@@ -19,6 +19,23 @@ final class InsertionManager {
 
     private let eventSource = CGEventSource(stateID: .combinedSessionState)
 
+    /// Timing of the synthetic-paste sequence. Tuned for reliability across slow,
+    /// asynchronous text surfaces (Mac Catalyst / Electron apps such as WhatsApp,
+    /// Slack and Discord) without making insertion feel sluggish in fast apps.
+    private enum Timing {
+        /// Time for focus to settle on the target after `activate()` before ⌘V.
+        static let settleWithTarget: TimeInterval = 0.08
+        static let settleNoTarget:   TimeInterval = 0.03
+        /// Gap after ⌘V before moving the caret between a pair.
+        static let afterPaste: TimeInterval = 0.06
+        /// Gap before restoring the user's clipboard. Must outlast the target's
+        /// (possibly asynchronous) pasteboard read, or a slow app would paste the
+        /// just-restored original clipboard instead of our content.
+        static let beforeRestore: TimeInterval = 0.18
+        /// How long the clipboard monitor ignores our own writes (write + restore).
+        static let monitorSuppression: TimeInterval = 1.5
+    }
+
     /// Inserts `symbol` into `targetApp` (the app that was frontmost at trigger time).
     /// Returns immediately; the paste/restore happens on a short timed sequence.
     @discardableResult
@@ -31,34 +48,8 @@ final class InsertionManager {
             pb.setString(symbol.insert, forType: .string)
             return .copiedOnly
         }
-
-        ClipboardMonitor.shared.suppress(for: 1.0)
-        let snapshot = ClipboardSnapshot.capture()
-
-        // Make sure the intended target is frontmost before we paste.
-        targetApp?.activate()
-
-        let pb = NSPasteboard.general
-        pb.clearContents()
-        pb.setString(symbol.insert, forType: .string)
-
-        // Give focus a moment to settle on the target, then paste.
-        let pasteDelay: TimeInterval = targetApp == nil ? 0.02 : 0.05
-        DispatchQueue.main.asyncAfter(deadline: .now() + pasteDelay) { [weak self] in
-            guard let self else { return }
-            self.postCommandV()
-
-            // After the paste lands, optionally move the caret between a pair.
-            let afterPaste: TimeInterval = 0.06
-            DispatchQueue.main.asyncAfter(deadline: .now() + afterPaste) {
-                for _ in 0..<symbol.caretBackSteps {
-                    self.postKey(CGKeyCode(kVK_LeftArrow))
-                }
-                // Restore only after the target has finished reading the pasteboard.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                    snapshot.restore()
-                }
-            }
+        performPaste(into: targetApp, caretBackSteps: symbol.caretBackSteps) { pb in
+            pb.setString(symbol.insert, forType: .string)
         }
         return .inserted
     }
@@ -72,16 +63,8 @@ final class InsertionManager {
             pb.setString(text, forType: .string)
             return
         }
-        let snapshot = ClipboardSnapshot.capture()
-        targetApp?.activate()
-        let pb = NSPasteboard.general
-        pb.clearContents()
-        pb.setString(text, forType: .string)
-        let delay: TimeInterval = targetApp == nil ? 0.02 : 0.05
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            guard let self else { return }
-            self.postCommandV()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) { snapshot.restore() }
+        performPaste(into: targetApp) { pb in
+            pb.setString(text, forType: .string)
         }
     }
 
@@ -95,18 +78,44 @@ final class InsertionManager {
             pb.writeObjects([item])
             return
         }
+        performPaste(into: targetApp) { pb in
+            let item = NSPasteboardItem()
+            item.setData(data, forType: type)
+            pb.writeObjects([item])
+        }
+    }
+
+    // MARK: Shared paste sequence
+
+    /// The single, hardened paste path used by every insertion: suppress the monitor,
+    /// snapshot the clipboard, write our content, bring the target forward, paste with
+    /// ⌘V after a settle delay, optionally reposition the caret, then restore the
+    /// user's original clipboard once the target has had time to read ours.
+    private func performPaste(into targetApp: NSRunningApplication?,
+                              caretBackSteps: Int = 0,
+                              write: (NSPasteboard) -> Void) {
+        ClipboardMonitor.shared.suppress(for: Timing.monitorSuppression)
         let snapshot = ClipboardSnapshot.capture()
+
+        // Make sure the intended target is frontmost before we paste.
         targetApp?.activate()
+
         let pb = NSPasteboard.general
         pb.clearContents()
-        let item = NSPasteboardItem()
-        item.setData(data, forType: type)
-        pb.writeObjects([item])
-        let delay: TimeInterval = targetApp == nil ? 0.02 : 0.05
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+        write(pb)
+
+        let settle = targetApp == nil ? Timing.settleNoTarget : Timing.settleWithTarget
+        DispatchQueue.main.asyncAfter(deadline: .now() + settle) { [weak self] in
             guard let self else { return }
             self.postCommandV()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) { snapshot.restore() }
+            DispatchQueue.main.asyncAfter(deadline: .now() + Timing.afterPaste) {
+                for _ in 0..<caretBackSteps {
+                    self.postKey(CGKeyCode(kVK_LeftArrow))
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + Timing.beforeRestore) {
+                    snapshot.restore()
+                }
+            }
         }
     }
 

@@ -1,8 +1,9 @@
 import SwiftUI
 import Carbon.HIToolbox
 
-/// The single, small settings window. Trigger config, login item, character logic
-/// and the Accessibility permission status — plus a short first-run explainer.
+/// The single, small settings window. Trigger config, login item, character logic,
+/// the menu bar icon and the Accessibility permission status — plus a short
+/// first-run explainer.
 struct SettingsView: View {
     @ObservedObject var appState: AppState
 
@@ -20,6 +21,7 @@ struct SettingsView: View {
             loginSection
             charactersSection
             clipboardSection
+            menuBarSection
             permissionSection
             storageFooter
         }
@@ -35,9 +37,9 @@ struct SettingsView: View {
     private var intro: some View {
         Section {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Puncto-dock")
+                Text("PunctoDock")
                     .font(.headline)
-                Text("Drücke den Trigger (Standard: F7), um in der Nähe des Mauszeigers ein Feld mit Satz- und Sonderzeichen zu öffnen. Das gewählte Zeichen wird in die App eingefügt, in der dein Textcursor steht.")
+                Text("Press the trigger (default: ⌥V) to open a panel of punctuation and special characters near your cursor. The character you pick is inserted into the app where your text cursor is.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -50,29 +52,31 @@ struct SettingsView: View {
 
     private var triggerSection: some View {
         Section("Trigger") {
-            Toggle("Tastatur-Trigger aktiv", isOn: $appState.settings.keyboardTriggerEnabled)
+            Toggle("Keyboard trigger", isOn: $appState.settings.keyboardTriggerEnabled)
 
             HStack {
-                Text("Tastenkürzel")
+                Text("Shortcut")
                 Spacer()
                 Button {
                     toggleRecording()
                 } label: {
-                    Text(recording ? "Taste drücken…" : appState.settings.hotkey.displayString)
+                    Text(recording ? "Press a key…" : appState.settings.hotkey.displayString)
                         .frame(minWidth: 70)
                         .monospacedDigit()
                 }
                 .disabled(!appState.settings.keyboardTriggerEnabled)
-                if appState.settings.hotkey != .defaultF7 {
-                    Button("F7") { appState.settings.hotkey = .defaultF7 }
-                        .disabled(!appState.settings.keyboardTriggerEnabled)
+                if appState.settings.hotkey != .defaultOptionV {
+                    Button(KeyCombo.defaultOptionV.displayString) {
+                        appState.settings.hotkey = .defaultOptionV
+                    }
+                    .disabled(!appState.settings.keyboardTriggerEnabled)
                 }
             }
 
-            Toggle("Mausrad-Doppelklick", isOn: $appState.settings.mouseMiddleDoubleClickEnabled)
+            Toggle("Middle-click double-press", isOn: $appState.settings.mouseMiddleDoubleClickEnabled)
 
             if noTriggerActive {
-                Label("Kein Trigger aktiv – das Panel lässt sich nicht öffnen.",
+                Label("No trigger active — the panel can't be opened.",
                       systemImage: "exclamationmark.triangle")
                     .font(.callout)
                     .foregroundStyle(.orange)
@@ -84,55 +88,65 @@ struct SettingsView: View {
 
     private var loginSection: some View {
         Section {
-            Toggle("Beim Anmelden starten", isOn: Binding(
+            Toggle("Start at login", isOn: Binding(
                 get: { appState.loginItemEnabled },
                 set: { appState.setLoginItem($0) }
             ))
         } footer: {
-            Text("Optional. Startet Puncto-dock automatisch im Hintergrund nach der Anmeldung.")
+            Text("Optional. Launches PunctoDock automatically in the background after you log in.")
         }
     }
 
     // MARK: Characters
 
     private var charactersSection: some View {
-        Section("Zeichen") {
-            Toggle("Häufig genutzte Zeichen zuerst", isOn: $appState.settings.prioritizeFrequentlyUsed)
-            Button("Nutzungsverlauf zurücksetzen") { appState.resetUsage() }
+        Section("Characters") {
+            Toggle("Most-used characters first", isOn: $appState.settings.prioritizeFrequentlyUsed)
+            Button("Reset usage history") { appState.resetUsage() }
         }
     }
 
     // MARK: Clipboard
 
     private var clipboardSection: some View {
-        Section("Zwischenablage") {
-            Toggle("Gepinnte Einträge beim Zurücksetzen behalten",
+        Section("Clipboard") {
+            Toggle("Keep pinned entries when clearing",
                    isOn: $appState.settings.clipboardKeepPinnedOnReset)
-            Button("Verlauf zurücksetzen") {
+            Button("Clear history") {
                 appState.clearClipboard(keepPinned: appState.settings.clipboardKeepPinnedOnReset)
             }
+        }
+    }
+
+    // MARK: Menu bar
+
+    private var menuBarSection: some View {
+        Section {
+            Toggle("Show menu bar icon", isOn: $appState.settings.showStatusItem)
+        } footer: {
+            Text("The menu bar icon opens the panel on click and shows a menu on right-click. The keyboard shortcut keeps working either way.")
         }
     }
 
     // MARK: Permission
 
     private var permissionSection: some View {
-        Section("Berechtigung") {
+        Section("Permission") {
             HStack {
                 Image(systemName: appState.accessibilityTrusted ? "checkmark.circle.fill" : "xmark.circle.fill")
                     .foregroundStyle(appState.accessibilityTrusted ? .green : .red)
                 Text(appState.accessibilityTrusted
-                     ? "Bedienungshilfen aktiviert"
-                     : "Bedienungshilfen nicht aktiviert")
+                     ? "Accessibility enabled"
+                     : "Accessibility not enabled")
                 Spacer()
-                Button("Status aktualisieren") { appState.refreshSystemState() }
+                Button("Refresh status") { appState.refreshSystemState() }
             }
             if !appState.accessibilityTrusted {
-                Text("Zum Einfügen in andere Apps muss Puncto-dock unter „Bedienungshilfen“ freigegeben sein. Ohne Freigabe wird das Zeichen nur in die Zwischenablage gelegt.")
+                Text("To insert into other apps, PunctoDock must be enabled under Accessibility. Without it, the character is only placed on the clipboard.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Button("In den Systemeinstellungen freigeben…") {
+                Button("Open Accessibility settings…") {
                     PermissionManager.shared.requestAccessibility()
                     PermissionManager.shared.openAccessibilitySettings()
                 }
@@ -144,7 +158,7 @@ struct SettingsView: View {
 
     private var storageFooter: some View {
         Section {
-            Text("Alle Daten bleiben lokal in ~/Library/Application Support/com.punctodock.app/. Keine Cloud, keine Telemetrie.")
+            Text("All data stays local in ~/Library/Application Support/com.punctodock.app/. No cloud, no telemetry.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

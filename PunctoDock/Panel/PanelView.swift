@@ -37,7 +37,7 @@ struct PanelView: View {
     private var tabBar: some View {
         HStack(spacing: 2) {
             tabButton("Clipboard", tab: .clipboard)
-            tabButton("Symbole",   tab: .symbols)
+            tabButton("Symbols",   tab: .symbols)
             tabButton("Emoji",     tab: .emoji)
         }
         .padding(2)
@@ -100,7 +100,8 @@ struct PanelView: View {
                                 onTogglePin:      { vm.togglePin(entry.id) },
                                 onDelete:         { vm.deleteClipboardEntry(entry.id) },
                                 onClearKeepPins:  { vm.clearClipboard(keepPinned: true) },
-                                onClearAll:       { vm.clearClipboard(keepPinned: false) }
+                                onClearAll:       { vm.clearClipboard(keepPinned: false) },
+                                onReveal:         { vm.revealInFinder(entry) }
                             )
                         }
                     }
@@ -120,7 +121,7 @@ struct PanelView: View {
                 .font(.system(size: 28))
                 .foregroundStyle(.tertiary)
                 .accessibilityHidden(true)          // purely decorative — no disk symbol lookup
-            Text("Noch nichts kopiert")
+            Text("Nothing copied yet")
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
         }
@@ -134,12 +135,12 @@ struct PanelView: View {
     private var symbolsTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                sectionLabel("Zeichen")
+                sectionLabel("Characters")
                 symbolGrid(vm.sortedSingles, startIndex: 0)
 
                 Divider().opacity(0.35).padding(.vertical, 1)
 
-                sectionLabel("Paare & Bausteine")
+                sectionLabel("Pairs & snippets")
                 symbolGrid(vm.pairs, startIndex: vm.singles.count)
             }
             .padding(.horizontal, 10)
@@ -184,6 +185,7 @@ private struct ClipboardRow: View {
     let onDelete: () -> Void
     let onClearKeepPins: () -> Void
     let onClearAll: () -> Void
+    let onReveal: () -> Void
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -232,16 +234,19 @@ private struct ClipboardRow: View {
         .menuStyle(.borderlessButton)
         .menuIndicator(.hidden)
         .fixedSize()
-        .accessibilityLabel("Optionen")             // static string, no SF-Symbol bundle read
+        .accessibilityLabel("Options")              // static string, no SF-Symbol bundle read
     }
 
     @ViewBuilder private var menuItems: some View {
-        Button(entry.isPinned ? "Lösen" : "Anpinnen", action: onTogglePin)
+        Button(entry.isPinned ? "Unpin" : "Pin", action: onTogglePin)
+        if entry.contentType == .image {
+            Button("Reveal in Finder", action: onReveal)
+        }
         Divider()
-        Button("Löschen", role: .destructive, action: onDelete)
+        Button("Delete", role: .destructive, action: onDelete)
         Divider()
-        Button("Alle löschen (Pins behalten)", action: onClearKeepPins)
-        Button("Alle löschen (auch Pins)", role: .destructive, action: onClearAll)
+        Button("Clear all (keep pins)", action: onClearKeepPins)
+        Button("Clear all (incl. pins)", role: .destructive, action: onClearAll)
     }
 }
 
@@ -295,7 +300,7 @@ private struct ClipboardImageView: View {
                 Image(nsImage: img)
                     .resizable()
                     .scaledToFit()
-                    .accessibilityLabel("Bild")
+                    .accessibilityLabel("Image")
             } else {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                     .fill(Color.primary.opacity(0.06))

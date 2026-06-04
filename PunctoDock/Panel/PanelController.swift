@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Carbon.HIToolbox
+import UniformTypeIdentifiers
 
 /// Owns the floating panel: shows/hides it near the mouse, wires keyboard navigation
 /// and outside-click dismissal, and routes selections to InsertionManager / AppState.
@@ -51,6 +52,7 @@ final class PanelController {
             self.appState.clearClipboard(keepPinned: keepPinned)
             self.vm.clipboardEntries = self.appState.clipboardHistory.entries
         }
+        vm.onRevealInFinder = { [weak self] entry in self?.revealInFinder(entry) }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
@@ -171,6 +173,31 @@ final class PanelController {
     private func openCharacterViewer() {
         close()
         NSApplication.shared.orderFrontCharacterPalette(nil)
+    }
+
+    // MARK: Reveal image in Finder
+
+    /// Exports the stored image to a temp file with a sensible extension and reveals it
+    /// in Finder. Stored entries are opaque `.bin` blobs, so we write a nicely-named
+    /// copy the user can actually open or drag out.
+    private func revealInFinder(_ entry: ClipboardEntry) {
+        close()
+        guard entry.contentType == .image, let data = entry.imageData else { return }
+        let ext = Self.fileExtension(forPasteboardType: entry.imagePasteboardType)
+        let name = "PunctoDock-image-\(entry.id.uuidString.prefix(8)).\(ext)"
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
+        do {
+            try data.write(to: url, options: .atomic)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } catch {
+            NSLog("PunctoDock: reveal-in-Finder export failed: \(error.localizedDescription)")
+        }
+    }
+
+    /// Maps a stored pasteboard-type identifier (e.g. "public.png") to a file extension.
+    private static func fileExtension(forPasteboardType raw: String?) -> String {
+        guard let raw, let ut = UTType(raw) else { return "png" }
+        return ut.preferredFilenameExtension ?? "png"
     }
 
     // MARK: Positioning

@@ -53,6 +53,10 @@ struct ClipboardEntry: Identifiable, Codable, Equatable {
     /// needed (e.g. for display or paste). Never called on hot paths.
     var imageData: Data? { imagePath.flatMap { ImageStore.load($0) } }
 
+    /// On-disk URL of the stored image (a UUID `.bin` file inside the image store).
+    /// Used to export / reveal the image; nil for text entries.
+    var imageFileURL: URL? { imagePath.map { ImageStore.url(for: $0) } }
+
     // MARK: Custom Codable — migrates old inline imageData to disk on first decode
 
     private enum CodingKeys: String, CodingKey {

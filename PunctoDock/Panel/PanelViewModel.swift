@@ -27,6 +27,7 @@ final class PanelViewModel: ObservableObject {
     var onTogglePin:       ((UUID) -> Void)?
     var onDeleteClipboard: ((UUID) -> Void)?
     var onClearClipboard:  ((Bool) -> Void)?
+    var onRevealInFinder:  ((ClipboardEntry) -> Void)?
 
     // MARK: Lifecycle
 
@@ -69,4 +70,5 @@ final class PanelViewModel: ObservableObject {
     func togglePin(_ id: UUID)                         { onTogglePin?(id) }
     func deleteClipboardEntry(_ id: UUID)              { onDeleteClipboard?(id) }
     func clearClipboard(keepPinned: Bool)              { onClearClipboard?(keepPinned) }
+    func revealInFinder(_ entry: ClipboardEntry)       { onRevealInFinder?(entry) }
 }

@@ -2,7 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 
 /// A keyboard shortcut: a virtual key code plus modifier flags.
-/// Used for both the default F7 trigger and the optional user-defined alternative.
+/// Used for both the default ⌥V trigger and any user-defined alternative.
 struct KeyCombo: Codable, Equatable {
     var keyCode: UInt32
     /// Cocoa device-independent modifier flags, stored as raw UInt for Codable.
@@ -21,8 +21,9 @@ struct KeyCombo: Codable, Equatable {
         NSEvent.ModifierFlags(rawValue: modifierFlagsRaw).intersection(.deviceIndependentFlagsMask)
     }
 
-    /// Product-required default trigger: F7 with no modifiers.
-    static let defaultF7 = KeyCombo(keyCode: UInt32(kVK_F7), modifierFlags: [], keyLabel: "F7")
+    /// Default trigger: ⌥V (Option+V). An ergonomic combo that rarely collides with
+    /// app shortcuts, while staying easy to reach one-handed.
+    static let defaultOptionV = KeyCombo(keyCode: UInt32(kVK_ANSI_V), modifierFlags: .option, keyLabel: "V")
 
     /// Carbon modifier mask for RegisterEventHotKey.
     var carbonModifiers: UInt32 {

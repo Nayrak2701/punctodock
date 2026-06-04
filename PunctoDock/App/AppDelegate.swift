@@ -29,19 +29,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Background utility: no Dock icon. Status bar item provides quick access.
+        // Background utility: no Dock icon.
         NSApp.setActivationPolicy(.accessory)
-        setupStatusItem()
 
         appState = AppState()
         triggerManager = TriggerManager()
         panelController = PanelController(appState: appState)
         settingsWindow = SettingsWindowController(appState: appState)
 
+        // Optional menu bar item for quick access (toggleable in Settings).
+        updateStatusItem(visible: appState.settings.showStatusItem)
+
         // Any trigger toggles the panel (source is used for a mouse-only reopen guard).
         triggerManager.onTrigger = { [weak self] source in self?.panelController.toggle(source: source) }
-        // Trigger-relevant settings changes re-arm the hotkey / mouse monitor.
-        appState.onSettingsChanged = { [weak self] settings in self?.triggerManager.apply(settings) }
+        // Settings changes re-arm the hotkey / mouse monitor and sync the menu bar icon.
+        appState.onSettingsChanged = { [weak self] settings in
+            self?.triggerManager.apply(settings)
+            self?.updateStatusItem(visible: settings.showStatusItem)
+        }
         triggerManager.apply(appState.settings)
 
         // Always start the AX check so the grant persists across Xcode rebuilds.
@@ -61,29 +66,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: Status Bar
 
-    private func setupStatusItem() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        guard let button = statusItem?.button else { return }
+    /// Shows or hides the menu bar item to match the user's preference. Idempotent:
+    /// calling it with the current state is a no-op.
+    private func updateStatusItem(visible: Bool) {
+        if visible {
+            guard statusItem == nil else { return }
+            statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+            guard let button = statusItem?.button else { return }
 
-        // Use a simple clipboard SF Symbol as template (adapts to light/dark menu bar automatically).
-        let img = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "PunctoDock")
-        img?.isTemplate = true
-        button.image = img
-        button.toolTip = "PunctoDock — Klick: Panel öffnen  |  Rechtsklick: Menü"
-        button.action = #selector(statusItemClicked(_:))
-        button.target = self
-        button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+            // Use a simple clipboard SF Symbol as template (adapts to light/dark menu bar automatically).
+            let img = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "PunctoDock")
+            img?.isTemplate = true
+            button.image = img
+            button.toolTip = "PunctoDock — Click: open panel  |  Right-click: menu"
+            button.action = #selector(statusItemClicked(_:))
+            button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        } else {
+            guard let item = statusItem else { return }
+            NSStatusBar.system.removeStatusItem(item)
+            statusItem = nil
+        }
     }
 
     @objc private func statusItemClicked(_ sender: NSStatusBarButton) {
         guard let event = NSApp.currentEvent else { return }
         if event.type == .rightMouseUp {
             let menu = NSMenu()
-            menu.addItem(withTitle: "Einstellungen…",
+            menu.addItem(withTitle: "Settings…",
                          action: #selector(openSettings),
                          keyEquivalent: ",")
             menu.addItem(.separator())
-            menu.addItem(withTitle: "PunctoDock beenden",
+            menu.addItem(withTitle: "Quit PunctoDock",
                          action: #selector(NSApplication.terminate(_:)),
                          keyEquivalent: "q")
             statusItem?.menu = menu

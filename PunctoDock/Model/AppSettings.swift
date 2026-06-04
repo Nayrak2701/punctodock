@@ -21,26 +21,32 @@ struct AppSettings: Codable, Equatable {
     /// When true, a clipboard history reset keeps pinned entries intact.
     var clipboardKeepPinnedOnReset: Bool
 
-    /// Fresh-install defaults required by the spec: F7 on, mouse off, no alt combo set.
+    /// When true, PunctoDock shows its icon in the menu bar (status item).
+    var showStatusItem: Bool
+
+    /// Fresh-install defaults: ⌥V on, mouse off, menu bar icon on.
     static let `default` = AppSettings(
         keyboardTriggerEnabled: true,
-        hotkey: .defaultF7,
+        hotkey: .defaultOptionV,
         mouseMiddleDoubleClickEnabled: false,
         prioritizeFrequentlyUsed: true,
         hasCompletedOnboarding: false,
-        clipboardKeepPinnedOnReset: true
+        clipboardKeepPinnedOnReset: true,
+        showStatusItem: true
     )
 
     // Tolerant decoding: missing keys fall back to defaults so older files keep working.
     init(keyboardTriggerEnabled: Bool, hotkey: KeyCombo,
          mouseMiddleDoubleClickEnabled: Bool, prioritizeFrequentlyUsed: Bool,
-         hasCompletedOnboarding: Bool, clipboardKeepPinnedOnReset: Bool) {
+         hasCompletedOnboarding: Bool, clipboardKeepPinnedOnReset: Bool,
+         showStatusItem: Bool) {
         self.keyboardTriggerEnabled = keyboardTriggerEnabled
         self.hotkey = hotkey
         self.mouseMiddleDoubleClickEnabled = mouseMiddleDoubleClickEnabled
         self.prioritizeFrequentlyUsed = prioritizeFrequentlyUsed
         self.hasCompletedOnboarding = hasCompletedOnboarding
         self.clipboardKeepPinnedOnReset = clipboardKeepPinnedOnReset
+        self.showStatusItem = showStatusItem
     }
 
     init(from decoder: Decoder) throws {
@@ -52,5 +58,6 @@ struct AppSettings: Codable, Equatable {
         prioritizeFrequentlyUsed = try c.decodeIfPresent(Bool.self, forKey: .prioritizeFrequentlyUsed) ?? d.prioritizeFrequentlyUsed
         hasCompletedOnboarding = try c.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? d.hasCompletedOnboarding
         clipboardKeepPinnedOnReset = try c.decodeIfPresent(Bool.self, forKey: .clipboardKeepPinnedOnReset) ?? d.clipboardKeepPinnedOnReset
+        showStatusItem = try c.decodeIfPresent(Bool.self, forKey: .showStatusItem) ?? d.showStatusItem
     }
 }

@@ -13,7 +13,7 @@ final class SettingsWindowController {
         if window == nil {
             let hosting = NSHostingController(rootView: SettingsView(appState: appState))
             let win = NSWindow(contentViewController: hosting)
-            win.title = "Puncto-dock"
+            win.title = "PunctoDock"
             win.styleMask = [.titled, .closable, .miniaturizable]
             win.isReleasedWhenClosed = false
             win.setContentSize(NSSize(width: 470, height: 600))

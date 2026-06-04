@@ -227,10 +227,9 @@
 			};
 			buildConfigurationList = 46E5A916260DF83493DCF3A2 /* Build configuration list for PBXProject "PunctoDock" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = de;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				de,
 				en,
 				Base,
 			);
