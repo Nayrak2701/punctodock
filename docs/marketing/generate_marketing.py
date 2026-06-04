@@ -8,7 +8,7 @@ Outputs (next to this script):
 Reproducible: re-run after changing copy or colors.
 """
 import os
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageChops
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ICON = os.path.join(HERE, "..", "app-icon.png")
@@ -47,6 +47,19 @@ def blob(size, color, radius, alpha):
               fill=color + (alpha,))
     return layer.filter(ImageFilter.GaussianBlur(radius * 0.45))
 
+def rounded(img, radius):
+    """Mask an image into a rounded-rect (macOS app-tile) shape, anti-aliased."""
+    s = img.size
+    scale = 4
+    big = (s[0] * scale, s[1] * scale)
+    mask = Image.new("L", big, 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        [0, 0, big[0] - 1, big[1] - 1], radius=radius * scale, fill=255)
+    mask = mask.resize(s, Image.LANCZOS)
+    out = img.convert("RGBA")
+    out.putalpha(ImageChops.multiply(out.split()[3], mask))
+    return out
+
 def drop_shadow(rgba, blur=24, alpha=120, offset=(0, 14)):
     a = rgba.split()[3]
     sh = Image.new("RGBA", rgba.size, (0, 0, 0, 0))
@@ -66,8 +79,10 @@ def build_hero():
     bg.alpha_composite(blob((W, H), (124, 92, 255), 360, 90), (-120, 120))
     bg.alpha_composite(blob((W, H), (92, 140, 255), 300, 70), (760, -160))
 
-    # App icon, left, with soft shadow.
+    # App icon, left — masked into a rounded macOS app tile (no square edges),
+    # with a soft shadow that follows the rounded shape.
     icon = Image.open(ICON).convert("RGBA").resize((360, 360), Image.LANCZOS)
+    icon = rounded(icon, int(360 * 0.2237))   # macOS app-icon corner radius
     ix, iy = 120, (H - 360) // 2
     sh, (ox, oy) = drop_shadow(icon, blur=30, alpha=140, offset=(0, 18))
     bg.alpha_composite(sh, (ix + ox, iy + oy))
@@ -75,22 +90,11 @@ def build_hero():
 
     d = ImageDraw.Draw(bg)
     tx = 560
-    d.text((tx, 196), "PunctoDock", font=font(98, bold=True), fill=(255, 255, 255))
-    d.multiline_text((tx, 312),
+    d.text((tx, 214), "PunctoDock", font=font(98, bold=True), fill=(255, 255, 255))
+    d.multiline_text((tx, 330),
                      "Punctuation, symbols & clipboard —\none keystroke away.",
                      font=font(36), fill=(222, 216, 244), spacing=10)
-
-    # Shortcut pill "⌥ V"
-    pill_font = font(30, bold=True)
-    label = "⌥ V"
-    pad_x, pad_y = 26, 14
-    tw = text_w(d, label, pill_font)
-    py = 452
-    d.rounded_rectangle([tx, py, tx + tw + pad_x * 2, py + 56], radius=28,
-                        fill=(124, 92, 255))
-    d.text((tx + pad_x, py + pad_y - 2), label, font=pill_font, fill=(255, 255, 255))
-
-    d.text((tx, 552), "macOS 26  ·  100% local  ·  no telemetry",
+    d.text((tx, 454), "macOS 26  ·  100% local  ·  no telemetry",
            font=font(23), fill=(176, 168, 208))
 
     out = os.path.join(HERE, "hero.png")

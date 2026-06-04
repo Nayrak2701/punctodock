@@ -144,10 +144,18 @@ See [docs/PASTE_COMPATIBILITY.md](docs/PASTE_COMPATIBILITY.md) for how insertion
 
 ## Privacy
 
-- **What is stored:** your trigger/hotkey preference, a usage counter per symbol (e.g. `{"?": 12, ".": 30}`), and clipboard history (local, no cloud sync)
-- **What is never stored:** text from other apps, app names, identity information
+PunctoDock collects **only what it needs to work**, and only on your Mac.
+
+- **Stored locally:** your settings, clipboard history (text & images), and — *only while
+  "Most-used characters first" is enabled* — a per-symbol usage counter. Turn that option
+  off and nothing about usage is recorded.
+- **Never recorded:** content a source marks sensitive (passwords from password managers
+  and other concealed/transient clipboard items are ignored), app names, or any identity
+  information.
+- **No network at all:** no cloud, no sync, no telemetry, no analytics, no account. The
+  app makes zero network connections.
 - **Where:** `~/Library/Application Support/com.punctodock.app/`
-- **To delete everything:** quit PunctoDock, then delete that folder
+- **To delete everything:** quit PunctoDock, then delete that folder.
 
 ---
 

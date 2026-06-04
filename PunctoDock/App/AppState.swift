@@ -79,7 +79,9 @@ final class AppState: ObservableObject {
     }
 
     func recordUsage(_ symbol: Symbol) {
-        guard symbol.kind == .single else { return }
+        // Only track usage while the "most-used first" feature is enabled. When it's
+        // off we collect nothing — no data is gathered that the app doesn't need.
+        guard settings.prioritizeFrequentlyUsed, symbol.kind == .single else { return }
         usage.record(symbol.insert)
         PersistenceManager.shared.saveUsage(usage)
     }
