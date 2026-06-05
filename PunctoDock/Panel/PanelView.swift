@@ -255,18 +255,19 @@ private struct ClipboardRow: View, Equatable {
     }
 
     private var menuButton: some View {
-        Menu { menuItems } label: {
-            Image(systemName: "ellipsis")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(width: 22, height: 20)
-                .contentShape(Rectangle())
-                .accessibilityHidden(true)          // label provided on the Menu; avoids disk lookup
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .accessibilityLabel("Options")              // static string, no SF-Symbol bundle read
+        // AppKit-backed button: updateNSView is O(1) — see ClipboardRowMenuButton below.
+        // This replaces SwiftUI's Menu{} which used AppKitPopUpAdaptor and loaded SF-Symbol
+        // images + localization strings for every item on every glass-effect backdrop tick.
+        ClipboardRowMenuButton(
+            isPinned:        entry.isPinned,
+            contentType:     entry.contentType,
+            onTogglePin:     onTogglePin,
+            onDelete:        onDelete,
+            onClearKeepPins: onClearKeepPins,
+            onClearAll:      onClearAll,
+            onReveal:        onReveal
+        )
+        .frame(width: 22, height: 20)
     }
 
     @ViewBuilder private var menuItems: some View {
@@ -279,6 +280,134 @@ private struct ClipboardRow: View, Equatable {
         Divider()
         Button("Clear all (keep pinned)", action: onClearKeepPins)
         Button("Clear all (with pinned)", role: .destructive, action: onClearAll)
+    }
+}
+
+// MARK: - ClipboardRowMenuButton
+
+/// AppKit-backed hamburger button for a clipboard row.
+///
+/// **Why not SwiftUI's `Menu {}`?**
+/// SwiftUI wraps `Menu {}` in `AppKitPopUpAdaptor`, which calls `updateNSView` on every
+/// single SwiftUI render pass. On macOS 26 the `GlassEffectContainer` fires a
+/// `glassEffectBackdropObserver` at display-refresh rate, triggering a render pass on
+/// every tick. Each `updateNSView` call then runs `PlatformItemList.Item.update()` for
+/// every menu item: that resolves SF-Symbol images via CoreUI AND loads localization
+/// `.strings` files from disk for accessibility labels. With 50 rows × 6 items × 60 Hz
+/// the process hit 66% CPU and grew memory by +2.3 GB/min until macOS force-killed it.
+///
+/// **This implementation eliminates the hot path completely.** `updateNSView` is O(1)
+/// with zero disk I/O — it just stores the latest values in the coordinator. The NSMenu
+/// is built lazily, only when the user actually clicks the button.
+private struct ClipboardRowMenuButton: NSViewRepresentable {
+    let isPinned:         Bool
+    let contentType:      ClipboardContentType
+    let onTogglePin:      () -> Void
+    let onDelete:         () -> Void
+    let onClearKeepPins:  () -> Void
+    let onClearAll:       () -> Void
+    let onReveal:         () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(isPinned: isPinned, contentType: contentType,
+                    onTogglePin: onTogglePin, onDelete: onDelete,
+                    onClearKeepPins: onClearKeepPins, onClearAll: onClearAll,
+                    onReveal: onReveal)
+    }
+
+    func makeNSView(context: Context) -> NSButton {
+        let btn = NSButton()
+        btn.bezelStyle   = .inline
+        btn.isBordered   = false
+        btn.imageScaling = .scaleProportionallyDown
+        // Build the symbol image ONCE at creation time — never on render.
+        let cfg = NSImage.SymbolConfiguration(pointSize: 12, weight: .medium)
+        if let img = NSImage(systemSymbolName: "ellipsis",
+                             accessibilityDescription: nil)?
+                        .withSymbolConfiguration(cfg) {
+            btn.image = img
+        }
+        // .secondaryLabelColor adapts to Light/Dark Mode, matching .foregroundStyle(.secondary).
+        btn.contentTintColor = .secondaryLabelColor
+        btn.setAccessibilityLabel("Options")
+        btn.target = context.coordinator
+        btn.action = #selector(Coordinator.showMenu(_:))
+        return btn
+    }
+
+    /// Called by SwiftUI on every glass-effect backdrop tick AND on genuine data changes.
+    /// MUST be O(1) with no disk I/O: we only update the coordinator's stored values so
+    /// the NEXT menu build (on user click) uses the current pin/type state and closures.
+    func updateNSView(_ nsView: NSButton, context: Context) {
+        let c            = context.coordinator
+        c.isPinned       = isPinned
+        c.contentType    = contentType
+        c.onTogglePin    = onTogglePin
+        c.onDelete       = onDelete
+        c.onClearKeepPins = onClearKeepPins
+        c.onClearAll     = onClearAll
+        c.onReveal       = onReveal
+    }
+
+    // MARK: Coordinator
+
+    final class Coordinator: NSObject {
+        var isPinned:        Bool
+        var contentType:     ClipboardContentType
+        var onTogglePin:     () -> Void
+        var onDelete:        () -> Void
+        var onClearKeepPins: () -> Void
+        var onClearAll:      () -> Void
+        var onReveal:        () -> Void
+
+        init(isPinned: Bool, contentType: ClipboardContentType,
+             onTogglePin:     @escaping () -> Void,
+             onDelete:        @escaping () -> Void,
+             onClearKeepPins: @escaping () -> Void,
+             onClearAll:      @escaping () -> Void,
+             onReveal:        @escaping () -> Void) {
+            self.isPinned        = isPinned
+            self.contentType     = contentType
+            self.onTogglePin     = onTogglePin
+            self.onDelete        = onDelete
+            self.onClearKeepPins = onClearKeepPins
+            self.onClearAll      = onClearAll
+            self.onReveal        = onReveal
+        }
+
+        @objc func showMenu(_ sender: NSButton) {
+            let menu = NSMenu()
+            menu.addItem(item(isPinned ? "Unpin" : "Pin", action: #selector(doTogglePin)))
+            if contentType == .image {
+                menu.addItem(item("Show in Finder", action: #selector(doReveal)))
+            }
+            menu.addItem(.separator())
+            menu.addItem(item("Delete", action: #selector(doDelete), isDestructive: true))
+            menu.addItem(.separator())
+            menu.addItem(item("Clear all (keep pinned)", action: #selector(doClearKeepPins)))
+            menu.addItem(item("Clear all (with pinned)", action: #selector(doClearAll),
+                              isDestructive: true))
+            // y = 0 in AppKit (y-up) is the bottom edge of the sender → menu opens below.
+            menu.popUp(positioning: nil, at: .zero, in: sender)
+        }
+
+        private func item(_ title: String, action: Selector,
+                          isDestructive: Bool = false) -> NSMenuItem {
+            let mi = NSMenuItem(title: title, action: action, keyEquivalent: "")
+            mi.target = self
+            if isDestructive {
+                mi.attributedTitle = NSAttributedString(
+                    string: title,
+                    attributes: [.foregroundColor: NSColor.systemRed])
+            }
+            return mi
+        }
+
+        @objc private func doTogglePin()     { onTogglePin() }
+        @objc private func doReveal()        { onReveal() }
+        @objc private func doDelete()        { onDelete() }
+        @objc private func doClearKeepPins() { onClearKeepPins() }
+        @objc private func doClearAll()      { onClearAll() }
     }
 }
 
