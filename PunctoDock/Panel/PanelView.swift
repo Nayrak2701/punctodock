@@ -22,8 +22,12 @@ struct PanelView: View {
 
                 // In-panel enlarged preview ("lightbox"). Lives inside the panel window,
                 // so showing it never makes the panel resign key — the panel stays open.
+                // Hit-test transparent: the medium's hover keeps tracking underneath, so
+                // the lightbox closes by itself the moment the pointer leaves the badge —
+                // no click needed.
                 if let entry = vm.previewEntry {
-                    ImagePreviewOverlay(entry: entry) { vm.previewEntry = nil }
+                    ImagePreviewOverlay(entry: entry)
+                        .allowsHitTesting(false)
                 }
             }
         }
@@ -115,7 +119,7 @@ struct PanelView: View {
                                 onClearKeepPins:  { vm.clearClipboard(keepPinned: true) },
                                 onClearAll:       { vm.clearClipboard(keepPinned: false) },
                                 onReveal:         { vm.revealInFinder(entry) },
-                                onPreview:        { vm.previewEntry = entry }
+                                onPreview:        { showing in vm.previewEntry = showing ? entry : nil }
                             )
                             .equatable()
                         }
@@ -208,7 +212,7 @@ private struct ClipboardRow: View, Equatable {
     let onClearKeepPins: () -> Void
     let onClearAll: () -> Void
     let onReveal: () -> Void
-    let onPreview: () -> Void
+    let onPreview: (Bool) -> Void
 
     static func == (lhs: ClipboardRow, rhs: ClipboardRow) -> Bool {
         lhs.entry.id          == rhs.entry.id       &&
@@ -335,16 +339,31 @@ private struct CardButtonBody: View {
 /// with the correct extension (`.png`, `.jpg`, etc.) so all targets can read it.
 private struct ClipboardImageView: View {
     let entry: ClipboardEntry
-    /// Opens the enlarged in-panel preview so the user can identify the image.
-    let onPreview: () -> Void
+    /// Hover callback for the enlarge affordance: true while the pointer is over the
+    /// expand badge (show the lightbox), false when it leaves (hide it). No click needed.
+    let onPreview: (Bool) -> Void
     @State private var image: NSImage?
     @State private var hovering = false
 
+    private let thumbSize: CGFloat = 60
+
+    // Horizontal media card: preview on the LEFT, caption + file type stacked next to it.
+    // The hamburger menu (owned by ClipboardRow) stays in the top-right corner untouched.
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .center, spacing: 10) {
             thumbnail
-            caption
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)                         // Beschriftung (top)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                Text(typeToken)                     // Dateiart (below)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
         }
+        .accessibilityElement(children: .combine)
         .task(id: entry.id) {
             // Disk read on a background thread; only Data (Sendable) crosses the boundary.
             let data = await Task.detached(priority: .utility) {
@@ -355,45 +374,51 @@ private struct ClipboardImageView: View {
         }
     }
 
-    // The image thumbnail. Still draggable (drag-to-upload preserved); on hover it
-    // shows an "enlarge" affordance that opens a bigger preview.
+    // Left-aligned, fixed-size preview tile so the medium never floats centred in free
+    // space. Still draggable (drag-to-upload preserved). On hover it reveals the expand
+    // badge in its bottom-right corner.
     private var thumbnail: some View {
         Group {
             if let img = image {
                 imageContent(img)
-                    .overlay(alignment: .bottomTrailing) {
-                        if hovering {
-                            Button(action: onPreview) {
-                                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundStyle(.secondary)
-                                    .padding(3)
-                                    .background(.ultraThinMaterial,
-                                                in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                    .padding(5)
-                            }
-                            .buttonStyle(.plain)
-                            .help("Show a larger preview")
-                            .accessibilityLabel("Enlarge image")
-                        }
-                    }
             } else {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.primary.opacity(0.06))
-                    .frame(height: 40)
-                    .accessibilityHidden(true)
+                Color.clear
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: 70, alignment: .leading)
+        .frame(width: thumbSize, height: thumbSize)
+        .background(Color.primary.opacity(0.04))
         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-        .onHover { hovering = $0 }
+        .overlay(alignment: .bottomTrailing) {
+            if hovering, image != nil { expandBadge }
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .onHover { h in
+            hovering = h
+            if !h { onPreview(false) }   // leaving the medium always closes the lightbox
+        }
         // Drag-to-upload: drag this image to a browser upload field, Finder, or any
         // image-accepting app. The temp file is kept until the next app launch.
         .onDrag { Self.dragProvider(for: entry) }
     }
 
-    // GIFs render through an NSImageView (animates = true) so they keep playing while
-    // the panel is open; everything else uses the cheaper static SwiftUI Image.
+    // Expand affordance: bottom-right, inside the medium, hover-only. Hovering it shows
+    // the lightbox; un-hovering hides it again — no click involved.
+    private var expandBadge: some View {
+        Image(systemName: "arrow.up.left.and.arrow.down.right")
+            .font(.system(size: 8, weight: .semibold))
+            .foregroundStyle(.secondary)
+            .padding(4)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            .padding(4)
+            .contentShape(Rectangle())
+            .onHover { onPreview($0) }
+            .help("Show a larger preview")
+            .accessibilityLabel("Enlarge image")
+    }
+
+    // GIFs render through an NSImageView (animates = true) so they keep playing while the
+    // panel is open; everything else uses the cheaper static SwiftUI Image. Both fit
+    // inside the tile.
     @ViewBuilder private func imageContent(_ img: NSImage) -> some View {
         if isAnimated {
             AnimatedImageView(image: img)
@@ -406,27 +431,12 @@ private struct ClipboardImageView: View {
         }
     }
 
-    // Quiet caption: pixel size (helps identify the image) plus a small type badge.
-    private var caption: some View {
-        HStack(spacing: 5) {
-            Text(dimensionText ?? "Image")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-            Text(typeToken)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 5)
-                .padding(.vertical, 1)
-                .background(Color.primary.opacity(0.08), in: Capsule())
-            Spacer(minLength: 0)
-        }
-        .accessibilityElement(children: .combine)
-    }
-
     // MARK: Caption helpers
 
-    /// Short uppercase file-type token, e.g. PNG / GIF / JPEG / TIFF.
+    /// Top line ("Beschriftung"): pixel size when known, else a neutral label.
+    private var label: String { dimensionText ?? "Image" }
+
+    /// Bottom line ("Dateiart"): short uppercase file-type token, e.g. PNG / GIF / JPEG.
     private var typeToken: String {
         guard let raw = entry.imagePasteboardType, let ut = UTType(raw) else { return "IMG" }
         if ut.conforms(to: .jpeg) { return "JPEG" }
@@ -542,27 +552,30 @@ private struct AnimatedImageView: NSViewRepresentable {
 /// animating in the preview too.
 private struct ImagePreviewOverlay: View {
     let entry: ClipboardEntry
-    let onClose: () -> Void
     @State private var image: NSImage?
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(Color.black.opacity(0.5))
-                .contentShape(Rectangle())
-                .onTapGesture(perform: onClose)
+            // Dim the panel content behind the preview.
+            Rectangle().fill(Color.black.opacity(0.45))
 
+            // The enlarged medium sits inside an OPAQUE card, so it can never look like
+            // it became the (transparent) panel's background — the bug we're fixing.
             Group {
                 if let img = image {
                     previewContent(img)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                        .shadow(radius: 12, y: 4)
+                        .padding(14)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(
+                            Color(nsColor: .windowBackgroundColor),
+                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        )
+                        .shadow(radius: 16, y: 4)
                 } else {
                     ProgressView()
                 }
             }
-            .padding(18)
-            .onTapGesture(perform: onClose)
+            .padding(16)
         }
         .accessibilityAddTraits(.isModal)
         .task(id: entry.id) {
