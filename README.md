@@ -9,11 +9,17 @@
 Press your shortcut from any app. A small window pops up next to your mouse. Click a symbol, sign, emoji, or an old copy — and it drops straight into your text. No copy and paste.
 
 <p align="center">
-  <img src="docs/screenshot-panel.png" width="420" alt="The PunctoDock window, showing the copy history">
+  <img src="docs/showcase-main-panel.png" width="420" alt="The PunctoDock window — your recent copies, including pictures and GIFs">
 </p>
 
 <p align="center">
   <img src="docs/marketing/features.png" width="820" alt="Type it anywhere · All your copies · Yours and private">
+</p>
+
+<p align="center">
+  <img src="docs/showcase-large-preview.png" width="420" alt="Hover a copied image to see a large preview before pasting">
+  <br>
+  <em>Hover a copied image to see it large before you paste.</em>
 </p>
 
 > Works on **macOS 26 or later**.
@@ -34,6 +40,8 @@ The window has three tabs:
 - **Learns your favourites** — the symbols you use most move to the front.
 - **Brackets and quotes in pairs** — they open and close, with your cursor in the middle.
 - **Remembers your copies** — recent text and pictures; pin the ones you want to keep.
+- **Copy pictures from anywhere** — screenshots, the web, or image files in Finder.
+- **Large preview on hover** — point at a copied picture to see it big before you paste.
 - **Show a picture in Finder** — right-click any image in the list.
 - **Works with all common pictures** — PNG, JPEG, GIF, HEIC, PDF and more, plus image files you copy in Finder.
 - **A menu bar icon** (optional) — click to open, right-click for a quick menu.
