@@ -471,18 +471,10 @@ private struct ClipboardImageView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             thumbnail
-            VStack(alignment: .leading, spacing: 0) {
-                Text(label)                         // Beschriftung — top of the tile
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                Spacer(minLength: 2)
-                Text(typeToken)                     // Dateiart — bottom of the tile
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            .frame(height: thumbSize, alignment: .leading)
-            .opacity(0.8)                           // ~20% more subtle / less glaring
+            Text(typeToken)                         // Dateiart-Badge, z. B. PNG / JPEG
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .opacity(0.8)
             Spacer(minLength: 0)
         }
         .accessibilityElement(children: .combine)
@@ -555,10 +547,7 @@ private struct ClipboardImageView: View {
 
     // MARK: Caption helpers
 
-    /// Top line ("Beschriftung"): pixel size when known, else a neutral label.
-    private var label: String { dimensionText ?? "Image" }
-
-    /// Bottom line ("Dateiart"): short uppercase file-type token, e.g. PNG / GIF / JPEG.
+    /// Short uppercase file-type token, e.g. PNG / GIF / JPEG.
     private var typeToken: String {
         guard let raw = entry.imagePasteboardType, let ut = UTType(raw) else { return "IMG" }
         if ut.conforms(to: .jpeg) { return "JPEG" }
@@ -568,12 +557,6 @@ private struct ClipboardImageView: View {
     private var isAnimated: Bool {
         guard let raw = entry.imagePasteboardType, let ut = UTType(raw) else { return false }
         return ut.conforms(to: .gif)
-    }
-
-    /// Pixel dimensions read from the largest representation, e.g. "1280 × 720".
-    private var dimensionText: String? {
-        guard let rep = image?.representations.first, rep.pixelsWide > 0 else { return nil }
-        return "\(rep.pixelsWide) × \(rep.pixelsHigh)"
     }
 
     // MARK: Drag provider
