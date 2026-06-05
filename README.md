@@ -9,6 +9,14 @@
 Press your shortcut from any app. A small window pops up next to your mouse. Click a symbol, sign, emoji, or an old copy — and it drops straight into your text. No copy and paste.
 
 <p align="center">
+  <a href="https://github.com/Nayrak2701/punctodock/releases/latest">
+    <img src="https://img.shields.io/badge/Download%20for%20macOS-33322F?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS">
+  </a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/Free%20%C2%B7%20Open%20source%20%C2%B7%20No%20account-E8E5DC?style=for-the-badge&labelColor=E8E5DC&color=33322F" alt="Free · Open source · No account">
+</p>
+
+<p align="center">
   <img src="docs/showcase-main-panel.png" width="420" alt="The PunctoDock window — your recent copies, including pictures and GIFs">
 </p>
 
@@ -63,7 +71,7 @@ The window has three tabs:
 
 ### Easiest way — download
 
-1. Open [Releases](../../releases) and download the latest `PunctoDock.zip`.
+1. Open the [latest release](https://github.com/Nayrak2701/punctodock/releases/latest) and download `PunctoDock.zip`.
 2. Unzip it. You get `PunctoDock.app`.
 3. Drag `PunctoDock.app` into your **Applications** folder.
 4. **Right-click it → Open**, then click **Open** again. (You only do this the first time. macOS shows a warning for apps that aren't from its store — this is normal.)
