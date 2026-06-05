@@ -14,18 +14,59 @@ private enum ImageStore {
         directory.appendingPathComponent(filename)
     }
 
+    // MARK: In-flight staging cache
+    //
+    // addImage inserts a ClipboardEntry synchronously but writes its bytes to disk on a
+    // background queue. Without a bridge, a read that lands in that window — clicking a
+    // just-copied image to paste it, or the thumbnail's load task — would miss and get
+    // nil (a blank tile, or a silently dropped paste). We therefore keep the bytes in a
+    // tiny in-memory cache from the moment addImage accepts them until their atomic disk
+    // write succeeds, and have load() consult it first. Normally this holds 0–1 items;
+    // `maxStaged` is only a backstop for the pathological case of stalled/failing writes.
+    // All access is serialised with `lock` because load() runs on both the main thread
+    // (paste / reveal) and background threads (the thumbnail's detached Task).
+    private static let lock = NSLock()
+    private static var staged: [String: Data] = [:]
+    private static var stagedOrder: [String] = []
+    private static let maxStaged = 8
+
+    static func stage(_ data: Data, filename: String) {
+        lock.lock(); defer { lock.unlock() }
+        if staged[filename] == nil { stagedOrder.append(filename) }
+        staged[filename] = data
+        while stagedOrder.count > maxStaged {
+            let oldest = stagedOrder.removeFirst()
+            staged[oldest] = nil
+        }
+    }
+
+    private static func unstage(_ filename: String) {
+        lock.lock(); defer { lock.unlock() }
+        guard staged.removeValue(forKey: filename) != nil else { return }
+        stagedOrder.removeAll { $0 == filename }
+    }
+
     static func write(_ data: Data, filename: String) {
-        let dir = directory
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? data.write(to: url(for: filename), options: .atomic)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        do {
+            try data.write(to: url(for: filename), options: .atomic)
+            unstage(filename)            // bytes safely on disk — release the in-memory copy
+        } catch {
+            // Keep the staged copy so in-session reads still succeed despite the failure.
+        }
     }
 
     static func remove(_ filename: String) {
+        unstage(filename)
         try? FileManager.default.removeItem(at: url(for: filename))
     }
 
     static func load(_ filename: String) -> Data? {
-        try? Data(contentsOf: url(for: filename))
+        lock.lock()
+        let cached = staged[filename]
+        lock.unlock()
+        if let cached { return cached }
+        return try? Data(contentsOf: url(for: filename))
     }
 }
 
@@ -134,7 +175,10 @@ struct ClipboardHistory: Codable {
                                       contentType: .image, text: nil,
                                       imagePath: filename, imagePasteboardType: pasteboardType), at: 0)
         trim()
-        // Write async so the main thread is never blocked by the disk write.
+        // Stage the bytes in memory synchronously so an immediate read (paste / thumbnail)
+        // can never miss, then write to disk off the main thread. The staged copy is
+        // released as soon as the disk write succeeds.
+        ImageStore.stage(data, filename: filename)
         DispatchQueue.global(qos: .utility).async { ImageStore.write(data, filename: filename) }
     }
 

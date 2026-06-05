@@ -19,6 +19,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var settingsWindow: SettingsWindowController!
     private var statusItem: NSStatusItem?
 
+    // MARK: Periodic silent relaunch
+    // PunctoDock is a long-running accessory app. On macOS 26 every process carries
+    // ~130 MB of system frameworks; over time additional allocations (images, SwiftUI
+    // render caches, Liquid Glass GPU state) can accumulate. A periodic silent relaunch
+    // flushes all of that and gives the app a clean slate — invisible to the user because
+    // the app launches in milliseconds and never shows a Dock icon.
+    private var relaunchTimer: Timer?
+    /// How long between silent relaunches. 10 minutes keeps sessions short enough to
+    /// avoid accumulation while being imperceptibly infrequent in normal use.
+    private let relaunchInterval: TimeInterval = 10 * 60
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Single-instance guard. A second copy (e.g. an orphaned Xcode-run build still
         // alive when a new one launches) would register the same global hotkey and show
@@ -71,6 +82,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // (that launch is the login one); clicking the app icon re-opens settings.
             settingsWindow.show()
         }
+
+        schedulePeriodicRelaunch()
     }
 
     // MARK: Status Bar
@@ -128,6 +141,52 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool { true }
+
+    // MARK: Silent periodic relaunch
+
+    private func schedulePeriodicRelaunch() {
+        relaunchTimer?.invalidate()
+        relaunchTimer = Timer.scheduledTimer(withTimeInterval: relaunchInterval, repeats: false) { [weak self] _ in
+            self?.attemptRelaunch()
+        }
+    }
+
+    /// Waits for the panel to be closed before relaunching, so an interaction in
+    /// progress is never interrupted. Retries every 30 s while the panel stays open.
+    private func attemptRelaunch() {
+        if panelController.isVisible {
+            Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
+                self?.attemptRelaunch()
+            }
+            return
+        }
+        relaunchSilently()
+    }
+
+    /// Spawns a detached shell that waits 1 second for the current process to exit, then
+    /// reopens the app bundle. The 1-second gap ensures the single-instance guard in
+    /// `applicationDidFinishLaunching` sees a clean slate. If spawning fails we simply
+    /// reschedule — the app keeps running normally.
+    private func relaunchSilently() {
+        let bundlePath = Bundle.main.bundlePath
+        // Single-quote the path so any spaces or special characters are handled safely.
+        let quoted = "'" + bundlePath.replacingOccurrences(of: "'", with: "'\\''") + "'"
+        let script = "sleep 1 && open \(quoted)"
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/bin/sh")
+        task.arguments = ["-c", script]
+        do {
+            try task.run()
+        } catch {
+            NSLog("PunctoDock: periodic relaunch could not spawn helper – \(error.localizedDescription)")
+            schedulePeriodicRelaunch()   // keep running; try again after the next interval
+            return
+        }
+        // Give the shell a moment to start before this process exits.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            NSApp.terminate(nil)
+        }
+    }
 
     /// True if another process with the same bundle identifier is already running.
     private func isAnotherInstanceRunning() -> Bool {

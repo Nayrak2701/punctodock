@@ -13,8 +13,12 @@ final class PersistenceManager {
     private let queue = DispatchQueue(label: "com.punctodock.persistence", qos: .utility)
 
     private init() {
+        // Application Support in the user domain effectively always resolves, but fall
+        // back to the temp directory rather than force-unwrapping so a misconfigured
+        // environment degrades to a working (if non-persistent) session instead of a crash.
         let base = FileManager.default
-            .urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            .urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+            ?? FileManager.default.temporaryDirectory
         storageDirectory = base.appendingPathComponent("com.punctodock.app", isDirectory: true)
         settingsURL  = storageDirectory.appendingPathComponent("com.punctodock.settings.json")
         usageURL     = storageDirectory.appendingPathComponent("com.punctodock.usage.json")
@@ -32,9 +36,9 @@ final class PersistenceManager {
     }
 
     func saveSettings(_ settings: AppSettings) {
-        queue.async { [settingsURL] in
+        queue.async { [settingsURL, storageDirectory] in
             guard let data = try? Self.encoder.encode(settings) else { return }
-            try? data.write(to: settingsURL, options: .atomic)
+            Self.write(data, to: settingsURL, ensuringDirectory: storageDirectory)
         }
     }
 
@@ -48,9 +52,9 @@ final class PersistenceManager {
     }
 
     func saveUsage(_ usage: UsageHistory) {
-        queue.async { [usageURL] in
+        queue.async { [usageURL, storageDirectory] in
             guard let data = try? Self.encoder.encode(usage) else { return }
-            try? data.write(to: usageURL, options: .atomic)
+            Self.write(data, to: usageURL, ensuringDirectory: storageDirectory)
         }
     }
 
@@ -64,10 +68,21 @@ final class PersistenceManager {
     }
 
     func saveClipboard(_ history: ClipboardHistory) {
-        queue.async { [clipboardURL] in
+        queue.async { [clipboardURL, storageDirectory] in
             guard let data = try? Self.encoder.encode(history) else { return }
-            try? data.write(to: clipboardURL, options: .atomic)
+            Self.write(data, to: clipboardURL, ensuringDirectory: storageDirectory)
         }
+    }
+
+    /// Re-ensures the storage directory exists, then writes atomically. The directory is
+    /// created once at init, but a transiently-unwritable Application Support at launch —
+    /// or the directory being removed mid-session — would otherwise make every later save
+    /// fail silently for the whole session. createDirectory is a cheap no-op when the
+    /// directory already exists, so this just lets persistence self-heal. Mirrors the
+    /// guard ImageStore.write already applies to clipboard-image files.
+    private static func write(_ data: Data, to url: URL, ensuringDirectory directory: URL) {
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try? data.write(to: url, options: .atomic)
     }
 
     private static let encoder: JSONEncoder = {

@@ -201,15 +201,24 @@ final class PanelController {
     /// copy the user can actually open or drag out.
     private func revealInFinder(_ entry: ClipboardEntry) {
         close()
-        guard entry.contentType == .image, let data = entry.imageData else { return }
+        guard entry.contentType == .image else { return }
         let ext = Self.fileExtension(forPasteboardType: entry.imagePasteboardType)
         let name = "PunctoDock-image-\(entry.id.uuidString.prefix(8)).\(ext)"
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
-        do {
-            try data.write(to: url, options: .atomic)
-            NSWorkspace.shared.activateFileViewerSelecting([url])
-        } catch {
-            NSLog("PunctoDock: reveal-in-Finder export failed: \(error.localizedDescription)")
+        // Read the (up-to-10 MB) bytes and write the temp copy off the main thread; only
+        // the Finder reveal hops back to main. Finder activation is inherently async and
+        // far slower than this hop, so the result is imperceptible while the disk I/O no
+        // longer blocks the main thread.
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let data = entry.imageData else { return }
+            do {
+                try data.write(to: url, options: .atomic)
+                DispatchQueue.main.async {
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                }
+            } catch {
+                NSLog("PunctoDock: reveal-in-Finder export failed: \(error.localizedDescription)")
+            }
         }
     }
 
