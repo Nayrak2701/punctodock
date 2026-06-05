@@ -16,8 +16,16 @@ struct PanelView: View {
         // the panel and the active-tab glass in a single sampling context so they read as
         // one continuous Apple material. Follows the system Light/Dark Mode automatically.
         GlassEffectContainer {
-            mainContent
-                .glassEffect(in: RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
+            ZStack {
+                mainContent
+                    .glassEffect(in: RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
+
+                // In-panel enlarged preview ("lightbox"). Lives inside the panel window,
+                // so showing it never makes the panel resign key — the panel stays open.
+                if let entry = vm.previewEntry {
+                    ImagePreviewOverlay(entry: entry) { vm.previewEntry = nil }
+                }
+            }
         }
         .clipShape(RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
     }
@@ -106,7 +114,8 @@ struct PanelView: View {
                                 onDelete:         { vm.deleteClipboardEntry(entry.id) },
                                 onClearKeepPins:  { vm.clearClipboard(keepPinned: true) },
                                 onClearAll:       { vm.clearClipboard(keepPinned: false) },
-                                onReveal:         { vm.revealInFinder(entry) }
+                                onReveal:         { vm.revealInFinder(entry) },
+                                onPreview:        { vm.previewEntry = entry }
                             )
                             .equatable()
                         }
@@ -199,6 +208,7 @@ private struct ClipboardRow: View, Equatable {
     let onClearKeepPins: () -> Void
     let onClearAll: () -> Void
     let onReveal: () -> Void
+    let onPreview: () -> Void
 
     static func == (lhs: ClipboardRow, rhs: ClipboardRow) -> Bool {
         lhs.entry.id          == rhs.entry.id       &&
@@ -241,7 +251,7 @@ private struct ClipboardRow: View, Equatable {
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             case .image:
-                ClipboardImageView(entry: entry)     // async load — no main-thread disk read
+                ClipboardImageView(entry: entry, onPreview: onPreview)  // async load — no main-thread disk read
             }
         }
         .padding(.leading, 10)
@@ -325,29 +335,46 @@ private struct CardButtonBody: View {
 /// with the correct extension (`.png`, `.jpg`, etc.) so all targets can read it.
 private struct ClipboardImageView: View {
     let entry: ClipboardEntry
+    /// Opens the enlarged in-panel preview so the user can identify the image.
+    let onPreview: () -> Void
     @State private var image: NSImage?
     @State private var hovering = false
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            thumbnail
+            caption
+        }
+        .task(id: entry.id) {
+            // Disk read on a background thread; only Data (Sendable) crosses the boundary.
+            let data = await Task.detached(priority: .utility) {
+                entry.imageData
+            }.value
+            guard let data else { return }
+            image = NSImage(data: data)
+        }
+    }
+
+    // The image thumbnail. Still draggable (drag-to-upload preserved); on hover it
+    // shows an "enlarge" affordance that opens a bigger preview.
+    private var thumbnail: some View {
         Group {
             if let img = image {
-                Image(nsImage: img)
-                    .resizable()
-                    .scaledToFit()
-                    .accessibilityLabel("Image")
-                    // Subtle drag-hint overlay — only shown on hover, no opacity animation
-                    // to keep rendering cheap (no extra SwiftUI passes).
+                imageContent(img)
                     .overlay(alignment: .bottomTrailing) {
                         if hovering {
-                            Image(systemName: "arrow.up.and.down.and.arrow.left.and.right")
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(3)
-                                .background(.ultraThinMaterial,
-                                            in: RoundedRectangle(cornerRadius: 4, style: .continuous))
-                                .padding(5)
-                                .allowsHitTesting(false)   // don't block the drag gesture
-                                .accessibilityHidden(true)
+                            Button(action: onPreview) {
+                                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                    .padding(3)
+                                    .background(.ultraThinMaterial,
+                                                in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                                    .padding(5)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Show a larger preview")
+                            .accessibilityLabel("Enlarge image")
                         }
                     }
             } else {
@@ -363,14 +390,58 @@ private struct ClipboardImageView: View {
         // Drag-to-upload: drag this image to a browser upload field, Finder, or any
         // image-accepting app. The temp file is kept until the next app launch.
         .onDrag { Self.dragProvider(for: entry) }
-        .task(id: entry.id) {
-            // Disk read on a background thread; only Data (Sendable) crosses the boundary.
-            let data = await Task.detached(priority: .utility) {
-                entry.imageData
-            }.value
-            guard let data else { return }
-            image = NSImage(data: data)
+    }
+
+    // GIFs render through an NSImageView (animates = true) so they keep playing while
+    // the panel is open; everything else uses the cheaper static SwiftUI Image.
+    @ViewBuilder private func imageContent(_ img: NSImage) -> some View {
+        if isAnimated {
+            AnimatedImageView(image: img)
+                .accessibilityLabel("Animated image")
+        } else {
+            Image(nsImage: img)
+                .resizable()
+                .scaledToFit()
+                .accessibilityLabel("Image")
         }
+    }
+
+    // Quiet caption: pixel size (helps identify the image) plus a small type badge.
+    private var caption: some View {
+        HStack(spacing: 5) {
+            Text(dimensionText ?? "Image")
+                .font(.system(size: 10))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text(typeToken)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1)
+                .background(Color.primary.opacity(0.08), in: Capsule())
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    // MARK: Caption helpers
+
+    /// Short uppercase file-type token, e.g. PNG / GIF / JPEG / TIFF.
+    private var typeToken: String {
+        guard let raw = entry.imagePasteboardType, let ut = UTType(raw) else { return "IMG" }
+        if ut.conforms(to: .jpeg) { return "JPEG" }
+        return (ut.preferredFilenameExtension ?? "img").uppercased()
+    }
+
+    private var isAnimated: Bool {
+        guard let raw = entry.imagePasteboardType, let ut = UTType(raw) else { return false }
+        return ut.conforms(to: .gif)
+    }
+
+    /// Pixel dimensions read from the largest representation, e.g. "1280 × 720".
+    private var dimensionText: String? {
+        guard let rep = image?.representations.first, rep.pixelsWide > 0 else { return nil }
+        return "\(rep.pixelsWide) × \(rep.pixelsHigh)"
     }
 
     // MARK: Drag provider
@@ -437,6 +508,82 @@ private struct ClipboardImageView: View {
         return provider
     }
 
+}
+
+// MARK: - AnimatedImageView
+
+/// Thin AppKit bridge that plays animated GIFs. SwiftUI's `Image(nsImage:)` shows only
+/// the first frame; `NSImageView.animates = true` plays every frame of a multi-frame
+/// NSImage. Used for both the thumbnail and the enlarged preview.
+private struct AnimatedImageView: NSViewRepresentable {
+    let image: NSImage
+
+    func makeNSView(context: Context) -> NSImageView {
+        let v = NSImageView()
+        v.imageScaling = .scaleProportionallyUpOrDown
+        v.animates = true
+        v.image = image
+        v.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        v.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        return v
+    }
+
+    func updateNSView(_ nsView: NSImageView, context: Context) {
+        if nsView.image !== image { nsView.image = image }
+        nsView.animates = true
+    }
+}
+
+// MARK: - ImagePreviewOverlay
+
+/// Enlarged in-panel preview ("lightbox"). Renders over the whole panel so the user can
+/// clearly recognise an image. It lives inside the panel window, so presenting it never
+/// makes the panel resign key — the panel stays open. Tap anywhere to dismiss. GIFs keep
+/// animating in the preview too.
+private struct ImagePreviewOverlay: View {
+    let entry: ClipboardEntry
+    let onClose: () -> Void
+    @State private var image: NSImage?
+
+    var body: some View {
+        ZStack {
+            Rectangle()
+                .fill(Color.black.opacity(0.5))
+                .contentShape(Rectangle())
+                .onTapGesture(perform: onClose)
+
+            Group {
+                if let img = image {
+                    previewContent(img)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .shadow(radius: 12, y: 4)
+                } else {
+                    ProgressView()
+                }
+            }
+            .padding(18)
+            .onTapGesture(perform: onClose)
+        }
+        .accessibilityAddTraits(.isModal)
+        .task(id: entry.id) {
+            let data = await Task.detached(priority: .utility) {
+                entry.imageData
+            }.value
+            guard let data else { return }
+            image = NSImage(data: data)
+        }
+    }
+
+    @ViewBuilder private func previewContent(_ img: NSImage) -> some View {
+        let animated = (entry.imagePasteboardType.flatMap { UTType($0) }?.conforms(to: .gif)) ?? false
+        if animated {
+            AnimatedImageView(image: img)
+        } else {
+            Image(nsImage: img)
+                .resizable()
+                .scaledToFit()
+        }
+    }
 }
 
 // MARK: - SymbolTile

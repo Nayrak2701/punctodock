@@ -10,6 +10,9 @@ final class PanelViewModel: ObservableObject {
     @Published var activeTab: PanelTab = .clipboard
     @Published var selectedIndex: Int  = 0
     @Published var clipboardEntries: [ClipboardEntry] = []
+    /// When set, the panel shows an in-place enlarged preview of this image entry
+    /// (a lightbox over the panel content) so the user can clearly identify it.
+    @Published var previewEntry: ClipboardEntry?
 
     let symbolColumns = 6
     let singles = SymbolCatalog.singles
@@ -34,6 +37,7 @@ final class PanelViewModel: ObservableObject {
     func reset() {
         activeTab    = .clipboard
         selectedIndex = 0
+        previewEntry  = nil
     }
 
     // MARK: Tab selection

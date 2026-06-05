@@ -17,12 +17,14 @@ struct SettingsView: View {
     var body: some View {
         Form {
             intro
+            statusSection
             triggerSection
             loginSection
             charactersSection
             clipboardSection
             menuBarSection
             permissionSection
+            tipsSection
             storageFooter
         }
         .formStyle(.grouped)
@@ -45,6 +47,51 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.vertical, 2)
+        }
+    }
+
+    // MARK: At a glance (read-only status overview)
+
+    /// A calm, honest summary of what is currently active. These are status indicators,
+    /// not controls — every item here is actually switched on/off by the sections below
+    /// (or, for typing permission, by macOS). Nothing here changes behaviour on its own.
+    private var statusSection: some View {
+        Section("At a glance") {
+            statusRow(on: canBeOpened,
+                      title: "Ready to open",
+                      detail: openSummary)
+            statusRow(on: appState.accessibilityTrusted,
+                      title: "Types into other apps",
+                      detail: appState.accessibilityTrusted ? "Allowed" : "Copies for you to paste")
+            statusRow(on: appState.settings.showStatusItem,
+                      title: "Menu bar icon",
+                      detail: appState.settings.showStatusItem ? "Shown" : "Hidden")
+            statusRow(on: appState.loginItemEnabled,
+                      title: "Starts at login",
+                      detail: appState.loginItemEnabled ? "On" : "Off")
+        }
+    }
+
+    private var canBeOpened: Bool {
+        appState.settings.keyboardTriggerEnabled || appState.settings.mouseMiddleDoubleClickEnabled
+    }
+
+    private var openSummary: String {
+        var parts: [String] = []
+        if appState.settings.keyboardTriggerEnabled { parts.append(appState.settings.hotkey.displayString) }
+        if appState.settings.mouseMiddleDoubleClickEnabled { parts.append("mouse wheel") }
+        return parts.isEmpty ? "No way to open it" : parts.joined(separator: " · ")
+    }
+
+    private func statusRow(on: Bool, title: String, detail: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: on ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(on ? Color.green : Color.secondary)
+            Text(title)
+            Spacer()
+            Text(detail)
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -150,6 +197,32 @@ struct SettingsView: View {
                     PermissionManager.shared.requestAccessibility()
                     PermissionManager.shared.openAccessibilitySettings()
                 }
+            }
+        }
+    }
+
+    // MARK: Quick tips
+
+    /// Short, plain-language hints for the two non-obvious interactions: the right-click
+    /// menu on a copied item, and the right-click menu on the menu bar icon. The menu bar
+    /// icon is shown inline (same SF Symbol as the real one) so it's unmistakable.
+    private var tipsSection: some View {
+        Section("Quick tips") {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: "hand.point.up.left")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+                Text("Right-click an item in the list to pin it, delete it, or show it in Finder.")
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Image(systemName: "doc.on.clipboard")   // identical to the menu bar icon
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+                Text("Right-click this icon in the menu bar to open settings or quit. A left-click opens PunctoDock.")
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
