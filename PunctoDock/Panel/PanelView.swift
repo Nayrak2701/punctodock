@@ -15,21 +15,11 @@ struct PanelView: View {
         // lets the glass sample the desktop/apps behind it; the GlassEffectContainer keeps
         // the panel and the active-tab glass in a single sampling context so they read as
         // one continuous Apple material. Follows the system Light/Dark Mode automatically.
+        // Preview is now a separate NSPanel at .popUpMenu level (above .floating),
+        // managed by PanelController. Nothing to render here.
         GlassEffectContainer {
-            ZStack {
-                mainContent
-                    .glassEffect(in: RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
-
-                // In-panel enlarged preview ("lightbox"). Lives inside the panel window,
-                // so showing it never makes the panel resign key — the panel stays open.
-                // Hit-test transparent: the medium's hover keeps tracking underneath, so
-                // the lightbox closes by itself the moment the pointer leaves the badge —
-                // no click needed.
-                if let entry = vm.previewEntry {
-                    ImagePreviewOverlay(entry: entry)
-                        .allowsHitTesting(false)
-                }
-            }
+            mainContent
+                .glassEffect(in: RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
         }
         .clipShape(RoundedRectangle(cornerRadius: outerRadius, style: .continuous))
     }
@@ -528,7 +518,8 @@ private struct ClipboardImageView: View {
 /// Thin AppKit bridge that plays animated GIFs. SwiftUI's `Image(nsImage:)` shows only
 /// the first frame; `NSImageView.animates = true` plays every frame of a multi-frame
 /// NSImage. Used for both the thumbnail and the enlarged preview.
-private struct AnimatedImageView: NSViewRepresentable {
+/// Internal (not private) so PanelController can embed it in the preview NSPanel.
+struct AnimatedImageView: NSViewRepresentable {
     let image: NSImage
 
     func makeNSView(context: Context) -> NSImageView {
@@ -547,53 +538,33 @@ private struct AnimatedImageView: NSViewRepresentable {
     }
 }
 
-// MARK: - ImagePreviewOverlay
+// MARK: - ImageLightboxContent
 
-/// Enlarged in-panel preview ("lightbox"). Renders over the whole panel so the user can
-/// clearly recognise an image. It lives inside the panel window, so presenting it never
-/// makes the panel resign key — the panel stays open. Tap anywhere to dismiss. GIFs keep
-/// animating in the preview too.
-private struct ImagePreviewOverlay: View {
+/// Content view for the enlarged image preview. Rendered inside its OWN NSPanel
+/// (managed by PanelController at .popUpMenu level), so it is completely independent
+/// from the transparent main panel and always renders in front of it.
+/// Internal so PanelController.showPreviewPanel() can embed it via NSHostingView.
+struct ImageLightboxContent: View {
     let entry: ClipboardEntry
-    @Environment(\.colorScheme) private var scheme
     @State private var image: NSImage?
 
-    // Solid, NON-vibrant fill. The panel is a transparent NSPanel, so system vibrancy
-    // surfaces (windowBackgroundColor, .regularMaterial …) render see-through here — which
-    // made the medium look like it sat behind the panel. An explicit opaque colour keeps
-    // the medium unmistakably in the foreground.
-    private var cardColor: Color {
-        scheme == .dark ? Color(white: 0.15) : Color(white: 0.97)
-    }
-
     var body: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(cardColor)
-            .overlay {
-                Group {
-                    if let img = image {
-                        previewContent(img)
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
-                            )
-                            .shadow(radius: 10, y: 3)
-                    } else {
-                        ProgressView()
-                    }
-                }
-                .padding(20)
+        ZStack {
+            if let img = image {
+                previewContent(img)
+                    .padding(14)
+            } else {
+                ProgressView()
             }
-            .padding(8)
-            .accessibilityAddTraits(.isModal)
-            .task(id: entry.id) {
-                let data = await Task.detached(priority: .utility) {
-                    entry.imageData
-                }.value
-                guard let data else { return }
-                image = NSImage(data: data)
-            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .task(id: entry.id) {
+            let data = await Task.detached(priority: .utility) {
+                entry.imageData
+            }.value
+            guard let data else { return }
+            image = NSImage(data: data)
+        }
     }
 
     @ViewBuilder private func previewContent(_ img: NSImage) -> some View {

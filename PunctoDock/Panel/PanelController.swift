@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 import Carbon.HIToolbox
 import UniformTypeIdentifiers
+import Combine
 
 /// Owns the floating panel: shows/hides it near the mouse, wires keyboard navigation
 /// and outside-click dismissal, and routes selections to InsertionManager / AppState.
@@ -19,6 +20,13 @@ final class PanelController {
     private var globalClickMonitor: Any?
     private var targetApp: NSRunningApplication?
     private var isClosing = false
+
+    // MARK: Image preview (separate NSPanel above .floating)
+    /// Dedicated panel at .popUpMenu level so the preview is always rendered in its own
+    /// compositing layer, visually in front of the transparent main panel. Mouse events
+    /// pass through (ignoresMouseEvents = true) so hover tracking continues beneath.
+    private var previewPanel: NSPanel?
+    private var previewCancellable: AnyCancellable?
 
     /// Uptime of the last *outside* dismissal (click elsewhere / key resignation).
     /// Used only to suppress a mouse-trigger reopen that belongs to the same gesture.
@@ -53,6 +61,15 @@ final class PanelController {
             self.vm.clipboardEntries = self.appState.clipboardHistory.entries
         }
         vm.onRevealInFinder = { [weak self] entry in self?.revealInFinder(entry) }
+
+        // Observe previewEntry: show/hide the dedicated preview NSPanel.
+        // receive(on: main) because @Published sinks can fire on any queue.
+        previewCancellable = vm.$previewEntry
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] entry in
+                if let entry { self?.showPreviewPanel(for: entry) }
+                else         { self?.hidePreviewPanel() }
+            }
     }
 
     var isVisible: Bool { panel?.isVisible == true }
@@ -111,6 +128,8 @@ final class PanelController {
     func close() {
         guard let panel, !isClosing else { return }
         isClosing = true
+        hidePreviewPanel()         // always dismiss the preview when the main panel closes
+        vm.previewEntry = nil      // keep vm state in sync
         removeMonitors()
         panel.orderOut(nil)
         panel.alphaValue = 1   // reset so the next show() starts clean
@@ -192,6 +211,58 @@ final class PanelController {
         } catch {
             NSLog("PunctoDock: reveal-in-Finder export failed: \(error.localizedDescription)")
         }
+    }
+
+    // MARK: Image preview panel
+
+    /// Shows (or repositions) a dedicated NSPanel at .popUpMenu level centred over the
+    /// main panel. Because the preview panel has its own compositing context and sits
+    /// above the transparent main panel in the window server order, the image is always
+    /// rendered in front — unlike a SwiftUI overlay inside the main panel which is
+    /// subject to the same Vibrancy/transparency compositing as the rest of the glass.
+    private func showPreviewPanel(for entry: ClipboardEntry) {
+        guard let mainPanel = panel else { return }
+
+        let size = NSSize(width: 320, height: 320)
+
+        if previewPanel == nil {
+            let p = NSPanel(
+                contentRect: NSRect(origin: .zero, size: size),
+                styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            p.level         = .popUpMenu        // above .floating — always in front
+            p.isFloatingPanel = true
+            p.isOpaque      = true              // own compositing layer, no see-through
+            p.backgroundColor = NSColor(white: 0.13, alpha: 1)   // dark opaque card
+            p.hasShadow     = true
+            p.hidesOnDeactivate = false
+            p.collectionBehavior = [.canJoinAllSpaces, .transient]
+            p.ignoresMouseEvents = true         // events pass through → hover in main panel stays active
+            previewPanel = p
+        }
+
+        let p = previewPanel!
+        // Centre over the main panel
+        let mf = mainPanel.frame
+        let origin = NSPoint(x: mf.midX - size.width / 2, y: mf.midY - size.height / 2)
+        p.setFrameOrigin(origin)
+        p.setContentSize(size)
+
+        // Rebuild content for this entry (cheap; only called on hover)
+        let hosting = NSHostingView(rootView: ImageLightboxContent(entry: entry))
+        hosting.wantsLayer = true
+        hosting.layer?.cornerRadius = 14
+        hosting.layer?.masksToBounds = true
+        hosting.autoresizingMask = [.width, .height]
+        p.contentView = hosting
+
+        p.orderFront(nil)
+    }
+
+    private func hidePreviewPanel() {
+        previewPanel?.orderOut(nil)
     }
 
     /// Maps a stored pasteboard-type identifier (e.g. "public.png") to a file extension.
