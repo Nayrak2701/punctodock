@@ -59,13 +59,14 @@ final class ClipboardMonitor {
         // Never record content flagged sensitive/transient by its source.
         if let types = pb.types, !Self.sensitiveMarkers.isDisjoint(with: Set(types)) { return }
 
-        // Plain text wins when present (covers copied text and most rich text).
-        if let text = pb.string(forType: .string), !text.isEmpty {
-            onNewText?(text)
-            return
-        }
+        // ── Image data is checked BEFORE plain text. ───────────────────────────────
+        // Browsers (Safari, Chrome, …) put both the image pixels AND the image URL as
+        // plain text on the pasteboard when the user selects "Copy Image". The old
+        // ordering let the text check win, recording the URL string instead of the
+        // actual image. Images from any source (screenshots, browser copy, design
+        // tools) now always take priority over any coincidental text on the pasteboard.
 
-        // Inline image data placed on the pasteboard, in order of preference.
+        // 1. Inline pixel data — screenshots, browser "Copy Image", design apps.
         if let item = pb.pasteboardItems?.first {
             for type in Self.imageTypes {
                 if let data = item.data(forType: type) {
@@ -75,11 +76,16 @@ final class ClipboardMonitor {
             }
         }
 
-        // An image FILE copied in Finder arrives as a file URL — load its bytes so it
-        // can be re-pasted as an image into other apps. Non-image files are ignored;
-        // oversized files are dropped downstream by ClipboardHistory's size cap.
+        // 2. Image FILE copied from Finder — arrives as a local file URL.
+        //    Only local file:// URLs are considered; http/https image links are ignored.
         if let (data, type) = imageFromFileURL(on: pb) {
             onNewImage?(data, type.rawValue)
+            return
+        }
+
+        // 3. Plain text — reached only when there is no image representation at all.
+        if let text = pb.string(forType: .string), !text.isEmpty {
+            onNewText?(text)
         }
     }
 
