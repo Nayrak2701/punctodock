@@ -469,7 +469,7 @@ private struct ClipboardImageView: View {
     // Horizontal media card: preview on the LEFT, caption + file type stacked next to it.
     // The hamburger menu (owned by ClipboardRow) stays in the top-right corner untouched.
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
+        HStack(alignment: .bottom, spacing: 10) {
             thumbnail
             Text(typeToken)                         // Dateiart-Badge, z. B. PNG / JPEG
                 .font(.system(size: 10, weight: .semibold))
