@@ -352,15 +352,18 @@ private struct ClipboardImageView: View {
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
             thumbnail
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)                         // Beschriftung (top)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(label)                         // Beschriftung — top of the tile
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
-                Text(typeToken)                     // Dateiart (below)
+                Spacer(minLength: 2)
+                Text(typeToken)                     // Dateiart — bottom of the tile
                     .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
+            .frame(height: thumbSize, alignment: .leading)
+            .opacity(0.8)                           // ~20% more subtle / less glaring
             Spacer(minLength: 0)
         }
         .accessibilityElement(children: .combine)
@@ -552,39 +555,45 @@ private struct AnimatedImageView: NSViewRepresentable {
 /// animating in the preview too.
 private struct ImagePreviewOverlay: View {
     let entry: ClipboardEntry
+    @Environment(\.colorScheme) private var scheme
     @State private var image: NSImage?
 
-    var body: some View {
-        ZStack {
-            // Dim the panel content behind the preview.
-            Rectangle().fill(Color.black.opacity(0.45))
+    // Solid, NON-vibrant fill. The panel is a transparent NSPanel, so system vibrancy
+    // surfaces (windowBackgroundColor, .regularMaterial …) render see-through here — which
+    // made the medium look like it sat behind the panel. An explicit opaque colour keeps
+    // the medium unmistakably in the foreground.
+    private var cardColor: Color {
+        scheme == .dark ? Color(white: 0.15) : Color(white: 0.97)
+    }
 
-            // The enlarged medium sits inside an OPAQUE card, so it can never look like
-            // it became the (transparent) panel's background — the bug we're fixing.
-            Group {
-                if let img = image {
-                    previewContent(img)
-                        .padding(14)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(
-                            Color(nsColor: .windowBackgroundColor),
-                            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        )
-                        .shadow(radius: 16, y: 4)
-                } else {
-                    ProgressView()
+    var body: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(cardColor)
+            .overlay {
+                Group {
+                    if let img = image {
+                        previewContent(img)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
+                            )
+                            .shadow(radius: 10, y: 3)
+                    } else {
+                        ProgressView()
+                    }
                 }
+                .padding(20)
             }
-            .padding(16)
-        }
-        .accessibilityAddTraits(.isModal)
-        .task(id: entry.id) {
-            let data = await Task.detached(priority: .utility) {
-                entry.imageData
-            }.value
-            guard let data else { return }
-            image = NSImage(data: data)
-        }
+            .padding(8)
+            .accessibilityAddTraits(.isModal)
+            .task(id: entry.id) {
+                let data = await Task.detached(priority: .utility) {
+                    entry.imageData
+                }.value
+                guard let data else { return }
+                image = NSImage(data: data)
+            }
     }
 
     @ViewBuilder private func previewContent(_ img: NSImage) -> some View {
