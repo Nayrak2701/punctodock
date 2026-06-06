@@ -51,7 +51,7 @@ The window has three tabs:
 - **Copy pictures from anywhere** — screenshots, the web, or image files in Finder.
 - **Large preview on hover** — point at a copied picture to see it big before you paste.
 - **Show a picture in Finder** — right-click any image in the list.
-- **Works with all common pictures** — PNG, JPEG, GIF, HEIC, PDF and more, plus image files you copy in Finder.
+- **Works with all common pictures** — PNG, JPEG, GIF, HEIC and more, plus image files you copy in Finder.
 - **A menu bar icon** (optional) — click to open, right-click for a quick menu.
 - **Private** — everything stays on your Mac. No internet, no account.
 

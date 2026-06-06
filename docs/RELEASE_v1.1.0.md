@@ -10,7 +10,7 @@ then attach `dist/PunctoDock.zip`.
 ### New
 - 🧭 **Menu bar icon** (toggle in Settings → *Show menu bar icon*). Click to open the panel; right-click for Settings / Quit.
 - 🖼️ **Reveal images in Finder** — right-click any image in the Clipboard tab.
-- 📎 **Broader image support** — PNG, TIFF, PDF, JPEG, GIF, HEIC/HEIF, BMP, WebP, plus image files copied in Finder.
+- 📎 **Broader image support** — PNG, TIFF, JPEG, GIF, HEIC/HEIF, BMP, WebP, plus image files copied in Finder.
 
 ### Changed
 - ⌨️ **Default shortcut is now ⌥V (Option+V)** instead of F7. Existing custom shortcuts are kept.

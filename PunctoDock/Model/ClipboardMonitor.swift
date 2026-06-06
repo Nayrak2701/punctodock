@@ -14,7 +14,7 @@ final class ClipboardMonitor {
     /// first. macOS usually synthesises `.tiff` for any image, so the first two catch
     /// almost everything; the rest cover apps that publish only one specific format.
     private static let imageTypes: [NSPasteboard.PasteboardType] = [
-        .png, .tiff, .pdf,
+        .png, .tiff,
         NSPasteboard.PasteboardType(UTType.jpeg.identifier),
         NSPasteboard.PasteboardType(UTType.gif.identifier),
         NSPasteboard.PasteboardType(UTType.heic.identifier),
